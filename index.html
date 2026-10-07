@@ -1,0 +1,2264 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="app_title">💎 كاشف التجميع Pro</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif; background: #0a0e14; color: #e6edf3; padding: 12px; min-height: 100vh; }
+
+  .header { text-align: center; margin-bottom: 12px; padding: 12px; background: linear-gradient(135deg, #2e1a0f, #0a0e14); border-radius: 12px; border: 1px solid #f0b90b; position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, #f0b90b44, transparent 70%); animation: rotate 8s linear infinite; }
+  @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .header h1 { font-size: 15px; color: #f0b90b; margin-bottom: 4px; position: relative; z-index: 1; }
+  .header p { font-size: 11px; color: #8b949e; position: relative; z-index: 1; }
+
+  .top-ticker { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .ticker-box { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 10px; }
+  .ticker-symbol { font-size: 11px; color: #8b949e; margin-bottom: 4px; }
+  .ticker-price { font-size: 15px; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 3px; }
+  .ticker-price.up { color: #3fb950; }
+  .ticker-price.down { color: #f85149; }
+  .ticker-change { font-size: 10px; font-weight: bold; }
+  .ticker-change.up { color: #3fb950; }
+  .ticker-change.down { color: #f85149; }
+  .ticker-bidask { display: flex; justify-content: space-between; font-size: 9px; color: #6e7681; margin-top: 3px; font-family: 'Courier New', monospace; }
+  .ticker-bidask .bid { color: #f85149; }
+  .ticker-bidask .ask { color: #3fb950; }
+
+  .macro-bar { border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative; overflow: hidden; }
+  .macro-bar.safe { background: linear-gradient(135deg, #0f2e1a, #0a0e14); border: 2px solid #3fb950; }
+  .macro-bar.warning { background: linear-gradient(135deg, #2e1a0f, #0a0e14); border: 2px solid #f0b90b; }
+  .macro-bar.danger { background: linear-gradient(135deg, #2e0f0f, #0a0e14); border: 2px solid #f85149; animation: pulse-macro 1s infinite; }
+  @keyframes pulse-macro { 0%,100% { box-shadow: 0 0 0 0 #f8514966; } 50% { box-shadow: 0 0 25px 5px #f8514944; } }
+  .macro-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .macro-title { font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+  .macro-title.safe { color: #3fb950; }
+  .macro-title.warning { color: #f0b90b; }
+  .macro-title.danger { color: #f85149; }
+  .macro-status { font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: bold; }
+  .macro-status.safe { background: #3fb95033; color: #3fb950; }
+  .macro-status.warning { background: #f0b90b33; color: #f0b90b; }
+  .macro-status.danger { background: #f8514933; color: #f85149; }
+  .macro-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .macro-box { background: #0a0e14; padding: 10px 6px; border-radius: 8px; text-align: center; }
+  .macro-label { font-size: 9px; color: #8b949e; margin-bottom: 3px; }
+  .macro-value { font-size: 15px; font-weight: bold; font-family: 'Courier New', monospace; }
+  .macro-value.safe { color: #3fb950; }
+  .macro-value.warning { color: #f0b90b; }
+  .macro-value.danger { color: #f85149; }
+  .macro-value.loading { color: #6e7681; }
+  .macro-sub { font-size: 9px; color: #6e7681; margin-top: 2px; }
+  .macro-hint { font-size: 10px; color: #8b949e; text-align: center; margin-top: 8px; padding: 6px; border-radius: 6px; }
+  .macro-hint.safe { background: #3fb95011; color: #3fb950; }
+  .macro-hint.warning { background: #f0b90b11; color: #f0b90b; }
+  .macro-hint.danger { background: #f8514911; color: #f85149; }
+  .macro-date { font-size: 9px; color: #6e7681; margin-top: 4px; text-align: center; }
+
+  .countdown-bar { background: linear-gradient(135deg, #2e0f0f, #0a0e14); border: 2px solid #f85149; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+  .countdown-bar.safe { background: linear-gradient(135deg, #0f2e1a, #0a0e14); border-color: #3fb950; }
+  .countdown-bar.warning { background: linear-gradient(135deg, #2e1a0f, #0a0e14); border-color: #f0b90b; }
+  .countdown-bar.danger { background: linear-gradient(135deg, #2e0f0f, #0a0e14); border-color: #f85149; animation: pulse-danger 1.5s infinite; }
+  @keyframes pulse-danger { 0%,100% { box-shadow: 0 0 0 0 #f8514966; } 50% { box-shadow: 0 0 20px 5px #f8514944; } }
+  .countdown-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .countdown-title { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+  .countdown-title.safe { color: #3fb950; }
+  .countdown-title.warning { color: #f0b90b; }
+  .countdown-title.danger { color: #f85149; }
+  .countdown-event { font-size: 10px; color: #8b949e; }
+  .countdown-timer { text-align: center; padding: 10px; background: #0a0e14; border-radius: 8px; margin-bottom: 8px; }
+  .countdown-value { font-size: 32px; font-weight: bold; font-family: 'Courier New', monospace; line-height: 1; }
+  .countdown-value.safe { color: #3fb950; }
+  .countdown-value.warning { color: #f0b90b; }
+  .countdown-value.danger { color: #f85149; }
+  .countdown-label { font-size: 10px; color: #8b949e; margin-top: 4px; }
+  .countdown-upcoming { display: flex; gap: 4px; flex-wrap: wrap; font-size: 10px; }
+  .countdown-pill { flex: 1; min-width: 80px; padding: 5px 8px; border-radius: 6px; text-align: center; font-weight: bold; }
+  .countdown-pill.high { background: #f8514933; color: #f85149; border: 1px solid #f85149; }
+  .countdown-pill.medium { background: #f0b90b33; color: #f0b90b; border: 1px solid #f0b90b; }
+
+  .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #161b22; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 10px; font-size: 11px; flex-wrap: wrap; gap: 6px; }
+  .live-dot { display: inline-block; width: 8px; height: 8px; background: #3fb950; border-radius: 50%; margin-left: 6px; animation: pulse-dot 1.5s infinite; }
+  .live-dot.off { background: #f85149; animation: none; }
+  @keyframes pulse-dot { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 #3fb95099; } 50% { opacity: 0.6; box-shadow: 0 0 0 8px transparent; } }
+
+  .controls { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  select, button, input { padding: 10px; border-radius: 8px; border: 1px solid #30363d; background: #161b22; color: #e6edf3; font-size: 12px; font-family: inherit; flex: 1; min-width: 80px; }
+  button { cursor: pointer; font-weight: bold; transition: 0.2s; }
+  button:hover:not(:disabled) { transform: translateY(-1px); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-start { background: linear-gradient(135deg, #b8860b, #f0b90b); border: none; color: #0a0e14; }
+  .btn-stop { background: linear-gradient(135deg, #f85149, #d29922); border: none; color: white; }
+  .btn-news { background: linear-gradient(135deg, #6e40c9, #a371f7); border: none; color: white; }
+  .btn-filter { background: linear-gradient(135deg, #30363d, #6e7681); border: none; color: white; }
+  .btn-reset { background: linear-gradient(135deg, #30363d, #6e7681); border: none; color: white; font-size: 11px; }
+  .btn-history { background: linear-gradient(135deg, #1f6feb, #58a6ff); border: none; color: white; }
+  .btn-macro { background: linear-gradient(135deg, #b8860b, #f0b90b); border: none; color: #0a0e14; }
+  .btn-daily { background: linear-gradient(135deg, #a371f7, #6e40c9); border: none; color: white; }
+  .btn-lang { background: linear-gradient(135deg, #1f6feb, #58a6ff); border: none; color: white; }
+
+  .market-toggle { display: flex; gap: 6px; margin-bottom: 10px; }
+  .market-btn { flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #30363d; background: #161b22; color: #8b949e; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+  .market-btn.active { border-color: #f0b90b; background: #f0b90b22; color: #f0b90b; }
+
+  .paper-toggle { display: flex; align-items: center; gap: 8px; padding: 10px; background: #161b22; border: 1px solid #a371f7; border-radius: 10px; margin-bottom: 10px; }
+  .paper-toggle input { width: auto; flex: 0; }
+  .paper-toggle label { font-size: 12px; color: #a371f7; font-weight: bold; cursor: pointer; }
+  .paper-toggle .paper-status { font-size: 10px; color: #8b949e; margin-right: auto; }
+
+  .news-panel { background: #161b22; border: 1px solid #58a6ff; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+  .news-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .news-title { font-size: 12px; color: #58a6ff; font-weight: bold; }
+  .news-count { font-size: 10px; color: #8b949e; }
+  .news-item { background: #0a0e14; padding: 8px 10px; border-radius: 6px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; border-right: 3px solid #6e7681; }
+  .news-item.high { border-right-color: #f85149; background: linear-gradient(90deg, #f8514911, #0a0e14); }
+  .news-item.medium { border-right-color: #f0b90b; }
+  .news-time { color: #8b949e; font-size: 10px; font-family: 'Courier New', monospace; }
+  .news-event { font-weight: bold; }
+  .news-impact { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+  .news-impact.high { background: #f85149; color: white; }
+  .news-impact.medium { background: #f0b90b; color: #0a0e14; }
+  .news-loading { text-align: center; padding: 20px; color: #8b949e; font-size: 11px; }
+
+  .news-warning { background: linear-gradient(135deg, #f8514922, #d2992211); border: 1px solid #f85149; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 11px; animation: pulse-warning 2s infinite; }
+  @keyframes pulse-warning { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+  .filter-panel { background: #161b22; border: 1px solid #f0b90b; border-radius: 10px; padding: 10px; margin-bottom: 10px; display: none; }
+  .filter-panel.open { display: block; }
+  .filter-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .filter-row label { font-size: 11px; color: #8b949e; min-width: 110px; }
+  .filter-row input[type="range"] { flex: 1; min-width: 120px; }
+  .filter-value { font-size: 12px; font-weight: bold; color: #f0b90b; min-width: 50px; text-align: center; }
+
+  .perf-panel { background: linear-gradient(135deg, #1a0f2e, #0a0e14); border: 1px solid #a371f7; border-radius: 10px; padding: 12px; margin-bottom: 12px; display: none; }
+  .perf-panel.open { display: block; }
+  .perf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .perf-title { font-size: 12px; color: #a371f7; font-weight: bold; }
+  .perf-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+  .perf-box { background: #0a0e14; padding: 10px; border-radius: 8px; text-align: center; }
+  .perf-box-label { font-size: 9px; color: #8b949e; margin-bottom: 3px; }
+  .perf-box-value { font-size: 16px; font-weight: bold; }
+  .perf-box-value.green { color: #3fb950; }
+  .perf-box-value.red { color: #f85149; }
+  .perf-box-value.gold { color: #f0b90b; }
+  .perf-box-value.blue { color: #58a6ff; }
+
+  .history-list { max-height: 400px; overflow-y: auto; }
+  .history-item { background: #0a0e14; padding: 8px 10px; border-radius: 6px; margin-bottom: 5px; border-right: 3px solid #6e7681; display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+  .history-item.win { border-right-color: #3fb950; background: linear-gradient(90deg, #3fb95011, #0a0e14); }
+  .history-item.loss { border-right-color: #f85149; background: linear-gradient(90deg, #f8514911, #0a0e14); }
+  .history-item.pending { border-right-color: #f0b90b; }
+  .history-symbol { font-weight: bold; min-width: 60px; }
+  .history-info { font-size: 10px; color: #8b949e; }
+  .history-result { font-weight: bold; font-family: 'Courier New', monospace; min-width: 70px; text-align: left; }
+  .history-result.win { color: #3fb950; }
+  .history-result.loss { color: #f85149; }
+  .history-result.pending { color: #f0b90b; }
+  .history-empty { text-align: center; padding: 20px; color: #8b949e; font-size: 11px; }
+  .history-btn-row { display: flex; gap: 6px; margin-top: 10px; }
+  .history-btn-row button { padding: 8px; font-size: 11px; }
+
+  .daily-panel { background: linear-gradient(135deg, #0f1a2e, #0a0e14); border: 1px solid #58a6ff; border-radius: 10px; padding: 12px; margin-bottom: 12px; display: none; }
+  .daily-panel.open { display: block; }
+  .daily-header { font-size: 12px; color: #58a6ff; font-weight: bold; margin-bottom: 10px; }
+  .daily-row { display: flex; justify-content: space-between; padding: 8px; background: #0a0e14; border-radius: 6px; margin-bottom: 5px; font-size: 11px; }
+  .daily-label { color: #8b949e; }
+  .daily-value { font-weight: bold; font-family: 'Courier New', monospace; }
+  .daily-value.green { color: #3fb950; }
+  .daily-value.red { color: #f85149; }
+  .daily-value.gold { color: #f0b90b; }
+
+  .stats-panel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+  .stat-box { background: #161b22; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #30363d; }
+  .stat-box-label { font-size: 9px; color: #8b949e; margin-bottom: 3px; }
+  .stat-box-value { font-size: 15px; font-weight: bold; }
+  .stat-box-value.green { color: #3fb950; }
+  .stat-box-value.red { color: #f85149; }
+  .stat-box-value.gold { color: #f0b90b; }
+  .stat-box-value.blue { color: #58a6ff; }
+
+  .signal-card { background: linear-gradient(135deg, #2e1a0f, #0a0e14); border-radius: 12px; padding: 14px; margin-bottom: 10px; border: 2px solid #f0b90b; animation: slideIn 0.4s ease-out; }
+  .signal-card.short { background: linear-gradient(135deg, #2e0f0f, #0a0e14); border-color: #f85149; }
+  .signal-card.hot { box-shadow: 0 0 35px #f0b90b77; }
+  .signal-card.short.hot { box-shadow: 0 0 35px #f8514977; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .signal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .signal-symbol { font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+  .signal-badge { font-size: 11px; padding: 5px 12px; border-radius: 6px; font-weight: bold; background: linear-gradient(135deg, #b8860b, #f0b90b); color: #0a0e14; }
+  .signal-badge.short { background: linear-gradient(135deg, #f85149, #d29922); color: white; }
+
+  .absorp-score { text-align: center; padding: 14px; background: #0a0e14; border-radius: 10px; margin-bottom: 10px; }
+  .absorp-value { font-size: 40px; font-weight: bold; line-height: 1; }
+  .absorp-value.high { color: #f0b90b; text-shadow: 0 0 25px #f0b90b88; }
+  .absorp-value.medium { color: #58a6ff; }
+  .absorp-value.short { color: #f85149; text-shadow: 0 0 25px #f8514988; }
+  .absorp-label { font-size: 10px; color: #8b949e; margin-top: 4px; }
+  .absorp-status { font-size: 13px; margin-top: 6px; font-weight: bold; color: #f0b90b; }
+  .absorp-status.short { color: #f85149; }
+
+  .absorption-bar { display: flex; height: 30px; border-radius: 8px; overflow: hidden; margin-bottom: 10px; background: #0a0e14; border: 1px solid #30363d; }
+  .abs-buy { background: linear-gradient(90deg, #238636, #3fb950); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; transition: width 0.5s; }
+  .abs-sell { background: linear-gradient(90deg, #d29922, #f85149); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; transition: width 0.5s; }
+
+  .alert-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .metric { background: #0a0e14; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+  .metric-label { color: #8b949e; }
+  .metric-value { font-weight: bold; font-size: 12px; }
+  .metric-value.up { color: #3fb950; }
+  .metric-value.down { color: #f85149; }
+  .metric-value.gold { color: #f0b90b; }
+
+  .big-actions { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px; margin-top: 10px; }
+  .big-btn { padding: 12px 8px; border-radius: 10px; border: none; color: white; font-weight: bold; font-size: 12px; cursor: pointer; }
+  .big-btn.go { background: linear-gradient(135deg, #b8860b, #f0b90b); color: #0a0e14; }
+  .big-btn.go-short { background: linear-gradient(135deg, #f85149, #d29922); }
+  .big-btn.chart { background: linear-gradient(135deg, #1f6feb, #58a6ff); }
+  .big-btn.copy { background: linear-gradient(135deg, #6e40c9, #a371f7); }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: #8b949e; font-size: 13px; }
+  .empty-state .emoji { font-size: 48px; display: block; margin-bottom: 12px; animation: pulse-emoji 2s infinite; }
+  @keyframes pulse-emoji { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+  .empty-stats { display: flex; justify-content: center; gap: 20px; margin-top: 15px; font-size: 11px; }
+  .empty-stat-value { font-size: 18px; font-weight: bold; color: #f0b90b; }
+
+  .toast { position: fixed; top: 10px; left: 10px; right: 10px; padding: 16px; border-radius: 12px; font-weight: bold; z-index: 99999; box-shadow: 0 8px 32px rgba(0,0,0,0.6); animation: slideDown 0.3s ease-out; border: 2px solid white; background: linear-gradient(135deg, #b8860b, #f0b90b); color: #0a0e14; }
+  .toast.short { background: linear-gradient(135deg, #f85149, #d29922); color: white; }
+  @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .toast-close { float: left; cursor: pointer; background: rgba(0,0,0,0.3); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+
+  .flash { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 99998; animation: flashEffect 0.7s ease-out; background: radial-gradient(circle, transparent 20%, #f0b90b66 100%); }
+  .flash.short { background: radial-gradient(circle, transparent 20%, #f8514966 100%); }
+  @keyframes flashEffect { from { opacity: 1; } to { opacity: 0; } }
+
+  footer { text-align: center; font-size: 10px; color: #6e7681; margin-top: 20px; padding-top: 12px; border-top: 1px solid #21262d; }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <h1 data-i18n="app_title">💎 كاشف التجميع Pro</h1>
+    <p data-i18n="app_subtitle">BTC/ETH • Long + Short • Yahoo Finance</p>
+  </div>
+
+  <div class="top-ticker">
+    <div class="ticker-box">
+      <div class="ticker-symbol">₿ BTC/USDT</div>
+      <div class="ticker-price" id="btcPrice">--</div>
+      <div class="ticker-change" id="btcChange">--</div>
+      <div class="ticker-bidask">
+        <span class="bid">Bid: <span id="btcBid">--</span></span>
+        <span class="ask">Ask: <span id="btcAsk">--</span></span>
+      </div>
+    </div>
+    <div class="ticker-box">
+      <div class="ticker-symbol">Ξ ETH/USDT</div>
+      <div class="ticker-price" id="ethPrice">--</div>
+      <div class="ticker-change" id="ethChange">--</div>
+      <div class="ticker-bidask">
+        <span class="bid">Bid: <span id="ethBid">--</span></span>
+        <span class="ask">Ask: <span id="ethAsk">--</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="macro-bar loading" id="macroBar">
+    <div class="macro-header">
+      <div class="macro-title" id="macroTitle">
+        <span>🌍</span>
+        <span data-i18n="macro_title">حالة الماكرو الحقيقية</span>
+      </div>
+      <div class="macro-status" id="macroStatus" data-i18n="loading">جاري التحميل...</div>
+    </div>
+    <div class="macro-grid">
+      <div class="macro-box">
+        <div class="macro-label" data-i18n="dollar">💵 الدولار (DXY)</div>
+        <div class="macro-value loading" id="dxyValue">--</div>
+        <div class="macro-sub" id="dxySub">Yahoo</div>
+      </div>
+      <div class="macro-box">
+        <div class="macro-label" data-i18n="oil">🛢️ النفط (برنت)</div>
+        <div class="macro-value loading" id="oilValue">--</div>
+        <div class="macro-sub" id="oilSub">Brent</div>
+      </div>
+      <div class="macro-box">
+        <div class="macro-label" data-i18n="status">📊 الحالة</div>
+        <div class="macro-value" id="macroSignal">--</div>
+      </div>
+    </div>
+    <div class="macro-hint" id="macroHint" data-i18n="analyzing">جاري تحليل الظروف...</div>
+    <div class="macro-date" id="macroDate"></div>
+  </div>
+
+  <div class="countdown-bar safe" id="countdownBar">
+    <div class="countdown-header">
+      <div class="countdown-title safe" id="countdownTitle">
+        <span>📅</span>
+        <span data-i18n="countdown_title">العد التنازلي للأخبار</span>
+      </div>
+      <div class="countdown-event" id="countdownEvent" data-i18n="loading">جاري التحميل...</div>
+    </div>
+    <div class="countdown-timer">
+      <div class="countdown-value safe" id="countdownValue">--:--:--</div>
+      <div class="countdown-label" id="countdownLabel" data-i18n="no_news">لا يوجد خبر قريب</div>
+    </div>
+    <div class="countdown-upcoming" id="countdownUpcoming"></div>
+  </div>
+
+  <div class="status-bar">
+    <div>
+      <span class="live-dot off" id="liveDot"></span>
+      <span id="statusText" data-i18n="stopped">متوقف</span>
+    </div>
+    <div>
+      <span id="scanCount" data-i18n="pulses">0 نبضة</span>
+      <span style="margin: 0 6px; color: #30363d;">|</span>
+      <span id="newsCount" style="color: #a371f7;">0</span>
+      <span style="margin: 0 6px; color: #30363d;">|</span>
+      <span id="symbolsCount" style="color: #f0b90b;">0</span>
+      <span style="margin: 0 6px; color: #30363d;">|</span>
+      <span id="lastUpdate" style="color: #6e7681;">--:--:--</span>
+    </div>
+  </div>
+
+  <div class="market-toggle">
+    <button class="market-btn active" id="mktSpot" onclick="setMarket('spot')" data-i18n="spot">💰 Spot</button>
+    <button class="market-btn" id="mktFutures" onclick="setMarket('futures')" data-i18n="futures">📊 Futures</button>
+  </div>
+
+  <div class="paper-toggle">
+    <input type="checkbox" id="paperMode" onchange="togglePaperMode()">
+    <label for="paperMode" data-i18n="paper_label">🎯 وضع تجريبي (Paper Trading)</label>
+    <span class="paper-status" id="paperStatus" data-i18n="paper_desc">يحسب النتائج فقط</span>
+  </div>
+
+  <div class="controls">
+    <button class="btn-start" id="startBtn" onclick="startSystem()" data-i18n="start">💎 بدء كاشف التجميع</button>
+    <button class="btn-stop" id="stopBtn" onclick="stopSystem()" disabled data-i18n="stop">⏹️ إيقاف</button>
+  </div>
+
+  <div class="controls">
+    <button class="btn-macro" onclick="fetchMacroData()" data-i18n="macro_btn">🌍 الماكرو</button>
+    <button class="btn-news" onclick="refreshNews()" data-i18n="news_btn">📰 الأخبار</button>
+    <button class="btn-history" onclick="toggleHistory()" data-i18n="history_btn">📊 السجل</button>
+    <button class="btn-daily" onclick="toggleDaily()" data-i18n="daily_btn">📈 التقرير</button>
+    <button class="btn-lang" onclick="toggleLanguage()" id="langBtn">🌐 عربي</button>
+    <button class="btn-filter" onclick="toggleFilter()" data-i18n="settings_btn">⚙️ الإعدادات</button>
+  </div>
+
+  <div class="filter-panel" id="filterPanel">
+    <div class="filter-row">
+      <label data-i18n="min_absorp">الحد الأدنى للتجميع:</label>
+      <input type="range" id="minAbsorpSlider" min="30" max="90" step="5" value="60" oninput="updateFilter('minAbsorp', this.value)">
+      <span class="filter-value" id="minAbsorpVal">60</span>
+    </div>
+    <div class="filter-row">
+      <label data-i18n="top_count">عدد العملات:</label>
+      <input type="range" id="topCountSlider" min="20" max="300" step="20" value="150" oninput="updateFilter('topCount', this.value)">
+      <span class="filter-value" id="topCountVal">150</span>
+    </div>
+    <div class="filter-row">
+      <label data-i18n="min_volume">حجم أدنى ($M):</label>
+      <input type="range" id="minVolumeSlider" min="1" max="100" step="1" value="5" oninput="updateFilter('minVolumeM', this.value)">
+      <span class="filter-value" id="minVolumeVal">5M</span>
+    </div>
+    <div class="filter-row">
+      <label data-i18n="cooldown">كتم التكرار (ث):</label>
+      <input type="range" id="cooldownSlider" min="180" max="1800" step="60" value="600" oninput="updateFilter('cooldownSec', this.value)">
+      <span class="filter-value" id="cooldownVal">600</span>
+    </div>
+    <div class="filter-row">
+      <label data-i18n="track_duration">مدة التتبع (دقيقة):</label>
+      <input type="range" id="trackDurSlider" min="15" max="180" step="15" value="60" oninput="updateFilter('trackDurationMin', this.value)">
+      <span class="filter-value" id="trackDurVal">60</span>
+    </div>
+    <div class="filter-row">
+      <label data-i18n="short_threshold">عتبة Short القوية:</label>
+      <input type="range" id="shortScoreSlider" min="50" max="90" step="5" value="70" oninput="updateFilter('shortScore', this.value)">
+      <span class="filter-value" id="shortScoreVal">70</span>
+    </div>
+    <div class="controls" style="margin-top:8px; margin-bottom:0;">
+      <button class="btn-reset" onclick="resetSettings()" data-i18n="reset">🔄 استعادة الافتراضي</button>
+    </div>
+  </div>
+
+  <div class="perf-panel" id="perfPanel">
+    <div class="perf-header">
+      <div class="perf-title" data-i18n="perf_title">📊 سجل الأداء</div>
+      <div style="font-size:10px; color:#8b949e;" id="perfLastUpdate">--</div>
+    </div>
+    <div class="perf-grid">
+      <div class="perf-box"><div class="perf-box-label" data-i18n="total">📈 إجمالي</div><div class="perf-box-value blue" id="perfTotal">0</div></div>
+      <div class="perf-box"><div class="perf-box-label" data-i18n="wins">✅ ربحانة</div><div class="perf-box-value green" id="perfWins">0</div></div>
+      <div class="perf-box"><div class="perf-box-label" data-i18n="losses">❌ خسرانة</div><div class="perf-box-value red" id="perfLosses">0</div></div>
+      <div class="perf-box"><div class="perf-box-label" data-i18n="win_rate">🎯 نجاح</div><div class="perf-box-value gold" id="perfWinRate">0%</div></div>
+    </div>
+    <div class="history-btn-row">
+      <button class="btn-reset" onclick="exportHistory()" style="background:linear-gradient(135deg,#1f6feb,#58a6ff);border:none;color:white;padding:8px;border-radius:6px;" data-i18n="export_csv">📥 CSV</button>
+      <button class="btn-reset" onclick="clearHistory()" style="background:linear-gradient(135deg,#f85149,#d29922);border:none;color:white;padding:8px;border-radius:6px;" data-i18n="clear">🗑️ مسح</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty" data-i18n="no_trades">لا توجد صفقات بعد</div>
+    </div>
+  </div>
+
+  <div class="daily-panel" id="dailyPanel">
+    <div class="daily-header" data-i18n="daily_title">📈 التقرير اليومي</div>
+    <div class="daily-row"><span class="daily-label" data-i18n="daily_signals">📊 عدد الإشارات</span><span class="daily-value" id="dailyTotal">0</span></div>
+    <div class="daily-row"><span class="daily-label" data-i18n="daily_long">🟢 Long</span><span class="daily-value green" id="dailyLong">0</span></div>
+    <div class="daily-row"><span class="daily-label" data-i18n="daily_short">🔴 Short</span><span class="daily-value red" id="dailyShort">0</span></div>
+    <div class="daily-row"><span class="daily-label" data-i18n="wins">✅ ربحانة</span><span class="daily-value green" id="dailyWins">0</span></div>
+    <div class="daily-row"><span class="daily-label" data-i18n="losses">❌ خسرانة</span><span class="daily-value red" id="dailyLosses">0</span></div>
+    <div class="daily-row"><span class="daily-label" data-i18n="daily_net">💰 صافي</span><span class="daily-value gold" id="dailyNet">0%</span></div>
+    <div class="daily-row"><span class="daily-label" data-i18n="daily_best">🏆 أفضل عملة</span><span class="daily-value green" id="dailyBest">--</span></div>
+    <div class="daily-row"><span class="daily-label" data-i18n="daily_worst">📉 أسوأ عملة</span><span class="daily-value red" id="dailyWorst">--</span></div>
+  </div>
+
+  <div class="news-panel" id="newsPanel">
+    <div class="news-header">
+      <div class="news-title" data-i18n="news_title">📰 التقويم الاقتصادي</div>
+      <div class="news-count" id="newsCountLabel" data-i18n="events">0 حدث</div>
+    </div>
+    <div id="newsList">
+      <div class="news-loading" data-i18n="news_loading">اضغط "بدء كاشف التجميع" لجلب الأخبار...</div>
+    </div>
+  </div>
+
+  <div class="stats-panel">
+    <div class="stat-box"><div class="stat-box-label" data-i18n="stat_accum">💎 تجميع</div><div class="stat-box-value gold" id="accumCount">0</div></div>
+    <div class="stat-box"><div class="stat-box-label" data-i18n="stat_strong">🔥 قوي (80+)</div><div class="stat-box-value green" id="strongCount">0</div></div>
+    <div class="stat-box"><div class="stat-box-label" data-i18n="stat_short">🔴 Short</div><div class="stat-box-value red" id="shortCount">0</div></div>
+    <div class="stat-box"><div class="stat-box-label" data-i18n="stat_tracking">🎯 متابعة</div><div class="stat-box-value blue" id="trackingCount">0</div></div>
+  </div>
+
+  <div id="alertsContainer">
+    <div class="empty-state">
+      <span class="emoji">💎</span>
+      <div data-i18n="empty_title">النظام يراقب إشارات Long + Short</div>
+      <div style="margin-top: 10px; font-size: 11px; color: #6e7681;">
+        <div data-i18n="empty_line1">💰 امتصاص البيع (Long)</div>
+        <div data-i18n="empty_line2">🔴 ضغط البيع (Short)</div>
+        <div data-i18n="empty_line3">📊 BTC/ETH + ماكرو حقيقي</div>
+      </div>
+      <div class="empty-stats">
+        <div><div class="empty-stat-value" id="emptyLiveCount">0</div><div style="font-size:9px; color:#6e7681;" data-i18n="live_prices">أسعار حية</div></div>
+        <div><div class="empty-stat-value" id="emptyScanCount">0</div><div style="font-size:9px; color:#6e7681;" data-i18n="pulses_short">نبضة</div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer data-i18n="footer">
+    💎 كاشف التجميع Pro • تعليمي • ليست نصيحة استثمارية
+  </footer>
+
+<script>
+/* ==========================================================
+   🌐 نظام الترجمة
+   ========================================================== */
+const TRANSLATIONS = {
+  ar: {
+    app_title: "💎 كاشف التجميع Pro",
+    app_subtitle: "BTC/ETH • Long + Short • Yahoo Finance",
+    macro_title: "حالة الماكرو الحقيقية",
+    loading: "جاري التحميل...",
+    dollar: "💵 الدولار (DXY)",
+    oil: "🛢️ النفط (برنت)",
+    status: "📊 الحالة",
+    analyzing: "جاري تحليل الظروف...",
+    countdown_title: "العد التنازلي للأخبار",
+    no_news: "لا يوجد خبر قريب",
+    stopped: "متوقف",
+    pulses: "0 نبضة",
+    spot: "💰 Spot",
+    futures: "📊 Futures",
+    paper_label: "🎯 وضع تجريبي (Paper Trading)",
+    paper_desc: "يحسب النتائج فقط",
+    start: "💎 بدء كاشف التجميع",
+    stop: "⏹️ إيقاف",
+    macro_btn: "🌍 الماكرو",
+    news_btn: "📰 الأخبار",
+    history_btn: "📊 السجل",
+    daily_btn: "📈 التقرير",
+    settings_btn: "⚙️ الإعدادات",
+    min_absorp: "الحد الأدنى للتجميع:",
+    top_count: "عدد العملات:",
+    min_volume: "حجم أدنى ($M):",
+    cooldown: "كتم التكرار (ث):",
+    track_duration: "مدة التتبع (دقيقة):",
+    short_threshold: "عتبة Short القوية:",
+    reset: "🔄 استعادة الافتراضي",
+    perf_title: "📊 سجل الأداء",
+    total: "📈 إجمالي",
+    wins: "✅ ربحانة",
+    losses: "❌ خسرانة",
+    win_rate: "🎯 نجاح",
+    export_csv: "📥 CSV",
+    clear: "🗑️ مسح",
+    no_trades: "لا توجد صفقات بعد",
+    daily_title: "📈 التقرير اليومي",
+    daily_signals: "📊 عدد الإشارات",
+    daily_long: "🟢 Long",
+    daily_short: "🔴 Short",
+    daily_net: "💰 صافي",
+    daily_best: "🏆 أفضل عملة",
+    daily_worst: "📉 أسوأ عملة",
+    news_title: "📰 التقويم الاقتصادي",
+    events: "0 حدث",
+    news_loading: "اضغط \"بدء كاشف التجميع\" لجلب الأخبار...",
+    stat_accum: "💎 تجميع",
+    stat_strong: "🔥 قوي (80+)",
+    stat_short: "🔴 Short",
+    stat_tracking: "🎯 متابعة",
+    empty_title: "النظام يراقب إشارات Long + Short",
+    empty_line1: "💰 امتصاص البيع (Long)",
+    empty_line2: "🔴 ضغط البيع (Short)",
+    empty_line3: "📊 BTC/ETH + ماكرو حقيقي",
+    live_prices: "أسعار حية",
+    pulses_short: "نبضة",
+    footer: "💎 كاشف التجميع Pro • تعليمي • ليست نصيحة استثمارية",
+    safe: "آمن", warning: "انتبه", danger: "خطر",
+    long: "🟢 LONG", short_badge: "🔴 SHORT",
+    strong_accum: "🔥 تجميع قوي", medium_accum: "💎 تجميع متوسط", weak: "⚪ إشارة ضعيفة",
+    strong_dist: "🔥 ضغط بيع قوي", medium_dist: "💥 ضغط بيع متوسط",
+    price: "💰 السعر", range: "📊 النطاق", position: "📍 الموقع",
+    wicks: "🕯️ ذيول", cvd: "📊 CVD", volume: "🌊 فوليوم",
+    dry: "جاف", normal: "طبيعي",
+    entry: "🎯 دخول", stop_loss: "🛑 وقف", target: "🎯 هدف",
+    buy: "🟢 شراء", short_action: "🔴 Short",
+    chart: "📊 شارت", copy: "📋 نسخ",
+    copied: "📋 تم النسخ!", copied_desc: "يمكنك لصق الإشارة",
+    macro_danger_title: "🚫 تحذير خطر الماكرو",
+    macro_danger_avoid: "⛔ يُنصح بالابتعاد عن السوق",
+    news_warning: "⚠️ تحذير خبر قريب",
+    after: "بعد",
+    minutes: "دقيقة",
+    minutes_short: "د",
+    hours_short: "س",
+    days_short: "ي",
+    no_upcoming_news: "لا توجد أخبار قادمة",
+    time_ago_sec: "منذ {n} ث",
+    time_ago_min: "منذ {n} د",
+    time_ago_hour: "منذ {n} س",
+    dollar_strong_vstrong: "الدولار قوي جداً", dollar_strong: "الدولار قوي",
+    dollar_high: "الدولار مرتفع", dollar_stable: "الدولار مستقر",
+    dollar_weak: "الدولار ضعيف", dollar_vweak: "الدولار ضعيف جداً",
+    oil_vhigh: "النفط مرتفع جداً", oil_high: "النفط مرتفع",
+    oil_above_avg: "النفط فوق المتوسط", oil_normal: "النفط طبيعي",
+    oil_low: "النفط منخفض", oil_vlow: "النفط منخفض جداً",
+    macro_ok: "✅ الظروف الماكرو جيدة — يمكنك التداول",
+    macro_avoid: "🚫 يُنصح بالابتعاد",
+    macro_watch: "⚠️ كن حذراً",
+    macro_reasons_ok: "الظروف مستقرة",
+    news_very_soon: "🔴 خبر قريب جداً",
+    news_prepare: "🔴 استعد",
+    news_watch: "🟡 راقب",
+    news_hours: "🟢 ساعة",
+    news_days: "🟢 يوم",
+    pending: "قيد المتابعة"
+  },
+  en: {
+    app_title: "💎 Accumulation Detector Pro",
+    app_subtitle: "BTC/ETH • Long + Short • Yahoo Finance",
+    macro_title: "Real Macro Status",
+    loading: "Loading...",
+    dollar: "💵 Dollar (DXY)",
+    oil: "🛢️ Oil (Brent)",
+    status: "📊 Status",
+    analyzing: "Analyzing conditions...",
+    countdown_title: "News Countdown",
+    no_news: "No upcoming news",
+    stopped: "Stopped",
+    pulses: "0 pulses",
+    spot: "💰 Spot",
+    futures: "📊 Futures",
+    paper_label: "🎯 Paper Trading Mode",
+    paper_desc: "Calculates results only",
+    start: "💎 Start Detector",
+    stop: "⏹️ Stop",
+    macro_btn: "🌍 Macro",
+    news_btn: "📰 News",
+    history_btn: "📊 History",
+    daily_btn: "📈 Daily Report",
+    settings_btn: "⚙️ Settings",
+    min_absorp: "Min Accumulation Score:",
+    top_count: "Number of Coins:",
+    min_volume: "Min Volume ($M):",
+    cooldown: "Cooldown (sec):",
+    track_duration: "Track Duration (min):",
+    short_threshold: "Short Signal Threshold:",
+    reset: "🔄 Reset to Default",
+    perf_title: "📊 Performance",
+    total: "📈 Total",
+    wins: "✅ Wins",
+    losses: "❌ Losses",
+    win_rate: "🎯 Win Rate",
+    export_csv: "📥 CSV",
+    clear: "🗑️ Clear",
+    no_trades: "No trades yet",
+    daily_title: "📈 Daily Report",
+    daily_signals: "📊 Signals Count",
+    daily_long: "🟢 Long",
+    daily_short: "🔴 Short",
+    daily_net: "💰 Net Profit",
+    daily_best: "🏆 Best Coin",
+    daily_worst: "📉 Worst Coin",
+    news_title: "📰 Economic Calendar",
+    events: "0 events",
+    news_loading: "Press \"Start Detector\" to load news...",
+    stat_accum: "💎 Accum",
+    stat_strong: "🔥 Strong (80+)",
+    stat_short: "🔴 Short",
+    stat_tracking: "🎯 Tracking",
+    empty_title: "System monitors Long + Short signals",
+    empty_line1: "💰 Buy Absorption (Long)",
+    empty_line2: "🔴 Sell Pressure (Short)",
+    empty_line3: "📊 BTC/ETH + Real Macro",
+    live_prices: "Live Prices",
+    pulses_short: "Pulses",
+    footer: "💎 Accumulation Detector Pro • Educational • Not investment advice",
+    safe: "Safe", warning: "Warning", danger: "Danger",
+    long: "🟢 LONG", short_badge: "🔴 SHORT",
+    strong_accum: "🔥 Strong Accumulation", medium_accum: "💎 Medium Accumulation", weak: "⚪ Weak Signal",
+    strong_dist: "🔥 Strong Distribution", medium_dist: "💥 Medium Distribution",
+    price: "💰 Price", range: "📊 Range", position: "📍 Position",
+    wicks: "🕯️ Wicks", cvd: "📊 CVD", volume: "🌊 Volume",
+    dry: "Dry", normal: "Normal",
+    entry: "🎯 Entry", stop_loss: "🛑 Stop", target: "🎯 Target",
+    buy: "🟢 Buy", short_action: "🔴 Short",
+    chart: "📊 Chart", copy: "📋 Copy",
+    copied: "📋 Copied!", copied_desc: "You can paste the signal",
+    macro_danger_title: "🚫 Macro Danger Warning",
+    macro_danger_avoid: "⛔ Avoid the market",
+    news_warning: "⚠️ News Warning",
+    after: "after",
+    minutes: "minutes",
+    minutes_short: "m",
+    hours_short: "h",
+    days_short: "d",
+    no_upcoming_news: "No upcoming news",
+    time_ago_sec: "{n}s ago",
+    time_ago_min: "{n}m ago",
+    time_ago_hour: "{n}h ago",
+    dollar_strong_vstrong: "Dollar very strong", dollar_strong: "Dollar strong",
+    dollar_high: "Dollar high", dollar_stable: "Dollar stable",
+    dollar_weak: "Dollar weak", dollar_vweak: "Dollar very weak",
+    oil_vhigh: "Oil very high", oil_high: "Oil high",
+    oil_above_avg: "Oil above average", oil_normal: "Oil normal",
+    oil_low: "Oil low", oil_vlow: "Oil very low",
+    macro_ok: "✅ Macro conditions are good — you can trade",
+    macro_avoid: "🚫 Avoid the market",
+    macro_watch: "⚠️ Be cautious",
+    macro_reasons_ok: "Conditions stable",
+    news_very_soon: "🔴 News very soon",
+    news_prepare: "🔴 Get ready",
+    news_watch: "🟡 Watch",
+    news_hours: "🟢 hour",
+    news_days: "🟢 day",
+    pending: "Pending"
+  },
+  zh: {
+    app_title: "💎 蓄力探测器 Pro",
+    app_subtitle: "BTC/ETH • 做多 + 做空 • 雅虎财经",
+    macro_title: "真实宏观状态",
+    loading: "加载中...",
+    dollar: "💵 美元 (DXY)",
+    oil: "🛢️ 原油 (布伦特)",
+    status: "📊 状态",
+    analyzing: "分析中...",
+    countdown_title: "新闻倒计时",
+    no_news: "暂无即将到来的新闻",
+    stopped: "已停止",
+    pulses: "0 脉冲",
+    spot: "💰 现货",
+    futures: "📊 合约",
+    paper_label: "🎯 模拟交易模式",
+    paper_desc: "仅计算收益",
+    start: "💎 启动探测器",
+    stop: "⏹️ 停止",
+    macro_btn: "🌍 宏观",
+    news_btn: "📰 新闻",
+    history_btn: "📊 记录",
+    daily_btn: "📈 日报",
+    settings_btn: "⚙️ 设置",
+    min_absorp: "最低蓄力分:",
+    top_count: "币种数量:",
+    min_volume: "最低交易量 ($M):",
+    cooldown: "冷却时间 (秒):",
+    track_duration: "追踪时长 (分钟):",
+    short_threshold: "做空信号阈值:",
+    reset: "🔄 恢复默认",
+    perf_title: "📊 表现记录",
+    total: "📈 总计",
+    wins: "✅ 盈利",
+    losses: "❌ 亏损",
+    win_rate: "🎯 胜率",
+    export_csv: "📥 CSV",
+    clear: "🗑️ 清空",
+    no_trades: "暂无交易",
+    daily_title: "📈 每日报告",
+    daily_signals: "📊 信号数量",
+    daily_long: "🟢 做多",
+    daily_short: "🔴 做空",
+    daily_net: "💰 净利润",
+    daily_best: "🏆 最佳币种",
+    daily_worst: "📉 最差币种",
+    news_title: "📰 经济日历",
+    events: "0 事件",
+    news_loading: "点击\"启动探测器\"加载新闻...",
+    stat_accum: "💎 蓄力",
+    stat_strong: "🔥 强 (80+)",
+    stat_short: "🔴 做空",
+    stat_tracking: "🎯 追踪",
+    empty_title: "系统监控做多 + 做空信号",
+    empty_line1: "💰 买盘吸收 (做多)",
+    empty_line2: "🔴 卖盘压力 (做空)",
+    empty_line3: "📊 BTC/ETH + 真实宏观",
+    live_prices: "实时价格",
+    pulses_short: "脉冲",
+    footer: "💎 蓄力探测器 Pro • 教育用途 • 非投资建议",
+    safe: "安全", warning: "注意", danger: "危险",
+    long: "🟢 做多", short_badge: "🔴 做空",
+    strong_accum: "🔥 强势蓄力", medium_accum: "💎 中等蓄力", weak: "⚪ 弱信号",
+    strong_dist: "🔥 强势派发", medium_dist: "💥 中等派发",
+    price: "💰 价格", range: "📊 区间", position: "📍 位置",
+    wicks: "🕯️ 影线", cvd: "📊 CVD", volume: "🌊 成交量",
+    dry: "干燥", normal: "正常",
+    entry: "🎯 入场", stop_loss: "🛑 止损", target: "🎯 目标",
+    buy: "🟢 买入", short_action: "🔴 做空",
+    chart: "📊 图表", copy: "📋 复制",
+    copied: "📋 已复制!", copied_desc: "可粘贴信号",
+    macro_danger_title: "🚫 宏观危险警告",
+    macro_danger_avoid: "⛔ 建议远离市场",
+    news_warning: "⚠️ 新闻警告",
+    after: "之后",
+    minutes: "分钟",
+    minutes_short: "分",
+    hours_short: "时",
+    days_short: "天",
+    no_upcoming_news: "暂无即将到来的新闻",
+    time_ago_sec: "{n}秒前",
+    time_ago_min: "{n}分钟前",
+    time_ago_hour: "{n}小时前",
+    dollar_strong_vstrong: "美元极强", dollar_strong: "美元强",
+    dollar_high: "美元偏高", dollar_stable: "美元稳定",
+    dollar_weak: "美元弱", dollar_vweak: "美元极弱",
+    oil_vhigh: "油价极高", oil_high: "油价高",
+    oil_above_avg: "油价高于平均", oil_normal: "油价正常",
+    oil_low: "油价低", oil_vlow: "油价极低",
+    macro_ok: "✅ 宏观条件良好 — 可以交易",
+    macro_avoid: "🚫 建议远离",
+    macro_watch: "⚠️ 请谨慎",
+    macro_reasons_ok: "条件稳定",
+    news_very_soon: "🔴 新闻即将到来",
+    news_prepare: "🔴 准备",
+    news_watch: "🟡 关注",
+    news_hours: "🟢 小时",
+    news_days: "🟢 天",
+    pending: "等待中"
+  }
+};
+
+let currentLang = 'ar';
+
+function t(key) {
+  const trans = TRANSLATIONS[currentLang] || TRANSLATIONS.ar;
+  return trans[key] || TRANSLATIONS.ar[key] || key;
+}
+
+function applyLanguage() {
+  document.documentElement.lang = currentLang;
+  document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const text = t(key);
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = text;
+    } else {
+      el.textContent = text;
+    }
+  });
+  const langBtn = document.getElementById('langBtn');
+  if (langBtn) {
+    const labels = { ar: '🌐 عربي', en: '🌐 English', zh: '🌐 中文' };
+    langBtn.textContent = labels[currentLang];
+  }
+  if (typeof renderSignal === 'function') renderSignal();
+  if (typeof renderHistory === 'function') renderHistory();
+  if (typeof updateMacroUI === 'function' && macroData.dollarStrength) updateMacroUI();
+  if (typeof updateCountdown === 'function' && newsEvents.length) updateCountdown();
+  if (typeof renderDailyReport === 'function' && document.getElementById('dailyPanel').classList.contains('open')) renderDailyReport();
+}
+
+function toggleLanguage() {
+  const order = ['ar', 'en', 'zh'];
+  const idx = order.indexOf(currentLang);
+  currentLang = order[(idx + 1) % order.length];
+  CONFIG.language = currentLang;
+  applyLanguage();
+  saveConfig();
+}
+
+/* ==========================================================
+   🔧 الإعدادات
+   ========================================================== */
+const DEFAULT_CONFIG = {
+  minAbsorp: 60,
+  topCount: 150,
+  minVolumeM: 5,
+  cooldownSec: 600,
+  maxAlerts: 30,
+  newsImportance: 'high,medium',
+  newsCountries: 'US,EU,GB',
+  trackDurationMin: 60,
+  paperMode: true,
+  newsWarn30: true,
+  newsWarn15: true,
+  newsWarn5: true,
+  shortScore: 70,
+  language: 'ar'
+};
+
+const STORAGE_KEY = 'accumulation_pro_v4';
+const HISTORY_KEY = 'trade_history_pro_v4';
+
+function saveConfig() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(CONFIG)); } catch(e) {}
+}
+
+function loadConfig() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.keys(DEFAULT_CONFIG).forEach(k => {
+        if (parsed[k] !== undefined) CONFIG[k] = parsed[k];
+      });
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function resetSettings() {
+  if (!confirm(currentLang === 'ar' ? 'استعادة الإعدادات؟' : currentLang === 'en' ? 'Reset settings?' : '重置设置？')) return;
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  Object.assign(CONFIG, DEFAULT_CONFIG);
+  currentLang = CONFIG.language;
+  applyLanguage();
+  applyConfigToUI();
+  saveConfig();
+}
+
+const CONFIG = { ...DEFAULT_CONFIG };
+
+/* ==========================================================
+   💾 سجل الصفقات
+   ========================================================== */
+let tradeHistory = [];
+let activeTrades = {};
+
+function loadHistory() {
+  try {
+    const saved = localStorage.getItem(HISTORY_KEY);
+    if (saved) tradeHistory = JSON.parse(saved);
+  } catch(e) { tradeHistory = []; }
+}
+
+function saveHistory() {
+  try {
+    const trimmed = tradeHistory.slice(0, 500);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+  } catch(e) {}
+}
+
+function addTradeToHistory(signal) {
+  const trade = {
+    id: 'T' + Date.now() + '_' + signal.symbol,
+    symbol: signal.symbol,
+    market: currentMarket,
+    direction: signal.direction || 'long',
+    score: signal.score,
+    entry: signal.entryPrice,
+    stopLoss: signal.stopLoss,
+    takeProfit: signal.takeProfit1,
+    time: Date.now(),
+    status: 'pending',
+    exitPrice: null,
+    exitTime: null,
+    result: 0,
+    durationMin: CONFIG.trackDurationMin
+  };
+  tradeHistory.unshift(trade);
+  saveHistory();
+  scheduleTradeCheck(trade);
+  return trade;
+}
+
+function scheduleTradeCheck(trade) {
+  activeTrades[trade.id] = trade;
+  const checkDelay = CONFIG.trackDurationMin * 60 * 1000;
+  const timer = setTimeout(() => {
+    checkTradeResult(trade.id);
+  }, Math.max(1000, trade.time + checkDelay - Date.now()));
+  activeTrades[trade.id]._timer = timer;
+}
+
+function checkTradeResult(tradeId) {
+  const trade = tradeHistory.find(tr => tr.id === tradeId);
+  if (!trade || trade.status !== 'pending') return;
+  const lp = liveData[trade.symbol];
+  if (!lp) {
+    trade.status = 'loss';
+    trade.result = 0;
+    trade.exitPrice = trade.entry;
+    trade.exitTime = Date.now();
+    saveHistory();
+    renderHistory();
+    updatePerfStats();
+    return;
+  }
+  const currentPrice = lp.price;
+  const isLong = trade.direction === 'long';
+  const resultPct = isLong
+    ? ((currentPrice - trade.entry) / trade.entry) * 100
+    : ((trade.entry - currentPrice) / trade.entry) * 100;
+
+  let status = 'loss';
+  if (isLong) {
+    if (currentPrice >= trade.takeProfit) status = 'win';
+    else if (currentPrice <= trade.stopLoss) status = 'loss';
+    else if (resultPct > 0) status = 'win';
+  } else {
+    if (currentPrice <= trade.takeProfit) status = 'win';
+    else if (currentPrice >= trade.stopLoss) status = 'loss';
+    else if (resultPct > 0) status = 'win';
+  }
+  trade.status = status;
+  trade.exitPrice = currentPrice;
+  trade.exitTime = Date.now();
+  trade.result = resultPct;
+  saveHistory();
+  renderHistory();
+  updatePerfStats();
+}
+
+function updatePerfStats() {
+  const total = tradeHistory.length;
+  const wins = tradeHistory.filter(tr => tr.status === 'win').length;
+  const losses = tradeHistory.filter(tr => tr.status === 'loss').length;
+  const pending = tradeHistory.filter(tr => tr.status === 'pending').length;
+  const completed = wins + losses;
+  const winRate = completed > 0 ? (wins / completed * 100) : 0;
+  document.getElementById('perfTotal').textContent = total;
+  document.getElementById('perfWins').textContent = wins;
+  document.getElementById('perfLosses').textContent = losses;
+  document.getElementById('perfWinRate').textContent = winRate.toFixed(1) + '%';
+  document.getElementById('perfLastUpdate').textContent = new Date().toLocaleTimeString();
+  document.getElementById('trackingCount').textContent = pending;
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (tradeHistory.length === 0) {
+    list.innerHTML = '<div class="history-empty">' + t('no_trades') + '</div>';
+    return;
+  }
+  const recent = tradeHistory.slice(0, 30);
+  list.innerHTML = recent.map(tr => {
+    const cls = tr.status === 'win' ? 'win' : tr.status === 'loss' ? 'loss' : 'pending';
+    const icon = tr.status === 'win' ? '✅' : tr.status === 'loss' ? '❌' : '⏳';
+    const resultStr = tr.status === 'pending' ? t('pending') : (tr.result > 0 ? '+' : '') + tr.result.toFixed(2) + '%';
+    const dirIcon = tr.direction === 'short' ? '🔴' : '🟢';
+    return `
+      <div class="history-item ${cls}">
+        <div>
+          <div class="history-symbol">${icon} ${dirIcon} ${tr.symbol.replace('USDT','')}</div>
+          <div class="history-info">${tr.score}% • ${getTimeAgo(tr.time)}</div>
+        </div>
+        <div class="history-result ${cls}">${resultStr}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function exportHistory() {
+  if (tradeHistory.length === 0) return alert('⚠️');
+  let csv = 'Date,Symbol,Direction,Score,Entry,StopLoss,TakeProfit,ExitPrice,Result%,Status\n';
+  tradeHistory.forEach(tr => {
+    csv += `${new Date(tr.time).toLocaleString('en-GB')},${tr.symbol},${tr.direction},${tr.score},${tr.entry},${tr.stopLoss},${tr.takeProfit},${tr.exitPrice || ''},${tr.result.toFixed(2)},${tr.status}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `trade_history_${Date.now()}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearHistory() {
+  if (!confirm('⚠️?')) return;
+  tradeHistory = [];
+  activeTrades = {};
+  saveHistory();
+  renderHistory();
+  updatePerfStats();
+}
+
+function toggleHistory() {
+  document.getElementById('perfPanel').classList.toggle('open');
+  document.getElementById('dailyPanel').classList.remove('open');
+  if (document.getElementById('perfPanel').classList.contains('open')) {
+    renderHistory();
+    updatePerfStats();
+  }
+}
+
+function toggleDaily() {
+  document.getElementById('dailyPanel').classList.toggle('open');
+  document.getElementById('perfPanel').classList.remove('open');
+  if (document.getElementById('dailyPanel').classList.contains('open')) renderDailyReport();
+}
+
+function togglePaperMode() {
+  CONFIG.paperMode = document.getElementById('paperMode').checked;
+  const statusEl = document.getElementById('paperStatus');
+  if (CONFIG.paperMode) {
+    statusEl.textContent = t('paper_desc');
+    statusEl.style.color = '#a371f7';
+  } else {
+    statusEl.textContent = currentLang === 'ar' ? 'يتداول بفلوس حقيقية' : currentLang === 'en' ? 'Real money trading' : '真实资金交易';
+    statusEl.style.color = '#f85149';
+  }
+  saveConfig();
+}
+
+/* ==========================================================
+   📈 التقرير اليومي
+   ========================================================== */
+function renderDailyReport() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayTs = today.getTime();
+  const todayTrades = tradeHistory.filter(tr => tr.time >= todayTs);
+  const longTrades = todayTrades.filter(tr => tr.direction !== 'short');
+  const shortTrades = todayTrades.filter(tr => tr.direction === 'short');
+  const wins = todayTrades.filter(tr => tr.status === 'win');
+  const losses = todayTrades.filter(tr => tr.status === 'loss');
+  const totalResult = todayTrades.filter(tr => tr.status !== 'pending').reduce((s, tr) => s + tr.result, 0);
+  let best = { symbol: '--', result: -Infinity };
+  let worst = { symbol: '--', result: Infinity };
+  todayTrades.filter(tr => tr.status !== 'pending').forEach(tr => {
+    if (tr.result > best.result) best = { symbol: tr.symbol.replace('USDT',''), result: tr.result };
+    if (tr.result < worst.result) worst = { symbol: tr.symbol.replace('USDT',''), result: tr.result };
+  });
+  document.getElementById('dailyTotal').textContent = todayTrades.length;
+  document.getElementById('dailyLong').textContent = longTrades.length;
+  document.getElementById('dailyShort').textContent = shortTrades.length;
+  document.getElementById('dailyWins').textContent = wins.length;
+  document.getElementById('dailyLosses').textContent = losses.length;
+  document.getElementById('dailyNet').textContent = (totalResult > 0 ? '+' : '') + totalResult.toFixed(2) + '%';
+  document.getElementById('dailyBest').textContent = best.symbol !== '--'
+    ? `${best.symbol} (${best.result > 0 ? '+' : ''}${best.result.toFixed(2)}%)` : '--';
+  document.getElementById('dailyWorst').textContent = worst.symbol !== '--'
+    ? `${worst.symbol} (${worst.result > 0 ? '+' : ''}${worst.result.toFixed(2)}%)` : '--';
+}
+
+/* ==========================================================
+   🌍 الماكرو الحقيقي — Yahoo Finance
+   ========================================================== */
+let macroData = {
+  oil: null,
+  dollarStrength: null,
+  lastUpdate: null,
+  lastState: null
+};
+
+async function fetchMacroData() {
+  try {
+    console.log('🌍 جلب بيانات الماكرو...');
+    const [oilRes, dxyRes] = await Promise.all([
+      fetch('https://query1.finance.yahoo.com/v8/finance/chart/BZ=F'),
+      fetch('https://query1.finance.yahoo.com/v8/finance/chart/DX-Y.NYB')
+    ]);
+    if (!oilRes.ok || !dxyRes.ok) throw new Error('Yahoo failed');
+    const oilJson = await oilRes.json();
+    const dxyJson = await dxyRes.json();
+    const oilPrice = oilJson.chart?.result?.[0]?.meta?.regularMarketPrice;
+    const dxyValue = dxyJson.chart?.result?.[0]?.meta?.regularMarketPrice;
+    if (!oilPrice || !dxyValue) throw new Error('no data');
+
+    macroData = {
+      oil: oilPrice,
+      dollarStrength: dxyValue,
+      lastUpdate: Date.now(),
+      lastState: macroData.lastState
+    };
+    console.log('✅', oilPrice, dxyValue);
+    updateMacroUI();
+    checkMacroAlert();
+  } catch (e) {
+    console.error('❌ Yahoo:', e);
+    try {
+      const oilRes = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/BZ=F'));
+      const dxyRes = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/DX-Y.NYB'));
+      const oilJson = await oilRes.json();
+      const dxyJson = await dxyRes.json();
+      const oilPrice = oilJson.chart?.result?.[0]?.meta?.regularMarketPrice;
+      const dxyValue = dxyJson.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if (!oilPrice || !dxyValue) throw new Error('no data');
+      macroData = {
+        oil: oilPrice,
+        dollarStrength: dxyValue,
+        lastUpdate: Date.now(),
+        lastState: macroData.lastState
+      };
+      updateMacroUI();
+      checkMacroAlert();
+    } catch (e2) {
+      document.getElementById('macroStatus').textContent = '⚠️';
+      document.getElementById('macroStatus').className = 'macro-status danger';
+      document.getElementById('macroHint').textContent = 'Error: ' + e.message;
+      document.getElementById('macroHint').className = 'macro-hint danger';
+    }
+  }
+}
+
+function analyzeMacro() {
+  const dollar = macroData.dollarStrength;
+  const oil = macroData.oil;
+  if (!dollar || !oil) return { state: 'safe', score: 0, reasons: [] };
+  let dangerScore = 0;
+  const reasons = [];
+
+  if (dollar > 110) { dangerScore += 55; reasons.push(`${t('dollar_strong_vstrong')} (${dollar.toFixed(2)})`); }
+  else if (dollar > 105) { dangerScore += 35; reasons.push(`${t('dollar_strong')} (${dollar.toFixed(2)})`); }
+  else if (dollar > 102) { dangerScore += 20; reasons.push(`${t('dollar_high')} (${dollar.toFixed(2)})`); }
+  else if (dollar > 99) { dangerScore += 5; reasons.push(`${t('dollar_stable')} (${dollar.toFixed(2)})`); }
+  else if (dollar > 95) { dangerScore -= 5; reasons.push(`${t('dollar_weak')} (${dollar.toFixed(2)})`); }
+  else { dangerScore -= 15; reasons.push(`${t('dollar_vweak')} (${dollar.toFixed(2)})`); }
+
+  if (oil > 110) { dangerScore += 60; reasons.push(`${t('oil_vhigh')} ($${oil.toFixed(2)})`); }
+  else if (oil > 100) { dangerScore += 45; reasons.push(`${t('oil_vhigh')} ($${oil.toFixed(2)})`); }
+  else if (oil > 95) { dangerScore += 35; reasons.push(`${t('oil_high')} ($${oil.toFixed(2)})`); }
+  else if (oil > 85) { dangerScore += 20; reasons.push(`${t('oil_above_avg')} ($${oil.toFixed(2)})`); }
+  else if (oil > 75) { dangerScore += 5; reasons.push(`${t('oil_normal')} ($${oil.toFixed(2)})`); }
+  else if (oil > 65) { dangerScore -= 10; reasons.push(`${t('oil_low')} ($${oil.toFixed(2)})`); }
+  else { dangerScore -= 20; reasons.push(`${t('oil_vlow')} ($${oil.toFixed(2)})`); }
+
+  let state = 'safe';
+  if (dangerScore >= 50) state = 'danger';
+  else if (dangerScore >= 25) state = 'warning';
+  return { state, score: dangerScore, reasons };
+}
+
+function checkMacroAlert() {
+  const analysis = analyzeMacro();
+  const prevState = macroData.lastState;
+  if (analysis.state === 'danger' && prevState !== 'danger') {
+    playMacroDangerSound();
+    vibrate([800, 300, 800, 300, 800, 300, 800]);
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(t('macro_danger_title'), {
+          body: analysis.reasons.slice(0, 2).join(' • ') + '\n' + t('macro_danger_avoid'),
+          tag: 'macro_danger_' + Date.now(),
+          requireInteraction: true
+        });
+      } catch(e) {}
+    }
+    showMacroToast(analysis.reasons);
+  }
+  macroData.lastState = analysis.state;
+}
+
+function playMacroDangerSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = i % 2 === 0 ? 1000 : 700;
+        osc.type = 'sawtooth';
+        gain.gain.setValueAtTime(0.5, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
+      }, i * 400);
+    }
+  } catch(e) {}
+}
+
+function showMacroToast(reasons) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.style.background = 'linear-gradient(135deg, #f85149, #d29922)';
+  toast.style.color = 'white';
+  toast.style.border = '3px solid white';
+  toast.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="font-size:16px;">${t('macro_danger_title')}</div>
+      <div class="toast-close" onclick="this.parentElement.parentElement.remove()">×</div>
+    </div>
+    <div style="font-size:12px; text-align:center; margin-top:10px;">
+      <b>${reasons.slice(0, 3).join(' • ')}</b>
+    </div>
+    <div style="font-size:14px; text-align:center; font-weight:bold; margin-top:8px;">
+      ${t('macro_danger_avoid')}
+    </div>
+  `;
+  document.body.appendChild(toast);
+}
+
+function updateMacroUI() {
+  const bar = document.getElementById('macroBar');
+  const title = document.getElementById('macroTitle');
+  const status = document.getElementById('macroStatus');
+  const dxyEl = document.getElementById('dxyValue');
+  const oilEl = document.getElementById('oilValue');
+  const signalEl = document.getElementById('macroSignal');
+  const hint = document.getElementById('macroHint');
+  const dateEl = document.getElementById('macroDate');
+
+  if (!macroData.dollarStrength || !macroData.oil) return;
+  const dollar = macroData.dollarStrength;
+  const oil = macroData.oil;
+
+  dxyEl.textContent = dollar.toFixed(2);
+  dxyEl.className = 'macro-value ' + (dollar > 105 ? 'danger' : dollar > 102 ? 'warning' : 'safe');
+  oilEl.textContent = '$' + oil.toFixed(2);
+  oilEl.className = 'macro-value ' + (oil > 100 ? 'danger' : oil > 95 ? 'warning' : 'safe');
+
+  const analysis = analyzeMacro();
+  const state = analysis.state;
+
+  let signalIcon = '🟢';
+  let signalText = t('safe');
+  let hintText = t('macro_ok');
+  if (state === 'danger') {
+    signalIcon = '🔴';
+    signalText = t('danger');
+    hintText = '🚫 ' + analysis.reasons.slice(0, 2).join(' • ');
+  } else if (state === 'warning') {
+    signalIcon = '🟡';
+    signalText = t('warning');
+    hintText = '⚠️ ' + analysis.reasons.slice(0, 2).join(' • ');
+  } else {
+    hintText = '✅ ' + (analysis.reasons[0] || t('macro_reasons_ok'));
+  }
+
+  bar.className = 'macro-bar ' + state;
+  title.className = 'macro-title ' + state;
+  status.className = 'macro-status ' + state;
+  status.textContent = signalIcon + ' ' + signalText;
+  signalEl.textContent = signalIcon;
+  signalEl.className = 'macro-value ' + state;
+  hint.className = 'macro-hint ' + state;
+  hint.textContent = hintText;
+
+  const updateTime = new Date(macroData.lastUpdate).toLocaleTimeString();
+  const scoreText = analysis.score > 0 ? ` (${analysis.score})` : '';
+  dateEl.textContent = `📅 ${updateTime} • Oil: $${oil.toFixed(2)} • DXY: ${dollar.toFixed(2)}${scoreText}`;
+}
+
+/* ==========================================================
+   📊 BTC/ETH
+   ========================================================== */
+let btcEthData = { btc: null, eth: null };
+
+async function fetchBtcEthData() {
+  try {
+    const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT"]');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const btc = data.find(d => d.symbol === 'BTCUSDT');
+    const eth = data.find(d => d.symbol === 'ETHUSDT');
+    if (btc) btcEthData.btc = { price: parseFloat(btc.lastPrice), change: parseFloat(btc.priceChangePercent), bid: parseFloat(btc.bidPrice), ask: parseFloat(btc.askPrice) };
+    if (eth) btcEthData.eth = { price: parseFloat(eth.lastPrice), change: parseFloat(eth.priceChangePercent), bid: parseFloat(eth.bidPrice), ask: parseFloat(eth.askPrice) };
+    updateBtcEthUI();
+  } catch (e) {}
+}
+
+function updateBtcEthUI() {
+  const btc = btcEthData.btc;
+  const eth = btcEthData.eth;
+  if (btc) {
+    const up = btc.change >= 0;
+    const pEl = document.getElementById('btcPrice');
+    pEl.textContent = '$' + btc.price.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    pEl.className = 'ticker-price ' + (up ? 'up' : 'down');
+    const cEl = document.getElementById('btcChange');
+    cEl.textContent = (up ? '▲' : '▼') + ' ' + btc.change.toFixed(2) + '%';
+    cEl.className = 'ticker-change ' + (up ? 'up' : 'down');
+    document.getElementById('btcBid').textContent = '$' + btc.bid.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    document.getElementById('btcAsk').textContent = '$' + btc.ask.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  }
+  if (eth) {
+    const up = eth.change >= 0;
+    const pEl = document.getElementById('ethPrice');
+    pEl.textContent = '$' + eth.price.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    pEl.className = 'ticker-price ' + (up ? 'up' : 'down');
+    const cEl = document.getElementById('ethChange');
+    cEl.textContent = (up ? '▲' : '▼') + ' ' + eth.change.toFixed(2) + '%';
+    cEl.className = 'ticker-change ' + (up ? 'up' : 'down');
+    document.getElementById('ethBid').textContent = '$' + eth.bid.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    document.getElementById('ethAsk').textContent = '$' + eth.ask.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  }
+}
+
+/* ==========================================================
+   📰 الأخبار
+   ========================================================== */
+let newsEvents = [];
+let newsWarningsFired = {};
+
+async function fetchNews() {
+  try {
+    const url = `https://biquote.io/api/calendar?importance=${CONFIG.newsImportance}&countries=${CONFIG.newsCountries}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('failed');
+    const data = await res.json();
+    newsEvents = Array.isArray(data) ? data : (data.events || data.data || []);
+    renderNews();
+    updateCountdown();
+  } catch (e) {
+    newsEvents = [
+      { title: 'FOMC Meeting Minutes', country: 'US', impact: 'High', date: '2026-10-07', time: '18:00' },
+      { title: 'CPI m/m', country: 'US', impact: 'High', date: '2026-10-14', time: '12:30' },
+      { title: 'Non-Farm Payrolls', country: 'US', impact: 'High', date: '2026-11-06', time: '13:30' }
+    ];
+    renderNews();
+    updateCountdown();
+  }
+}
+
+function refreshNews() {
+  document.getElementById('newsList').innerHTML = '<div class="news-loading">' + t('loading') + '</div>';
+  fetchNews();
+}
+
+function renderNews() {
+  const list = document.getElementById('newsList');
+  const label = document.getElementById('newsCountLabel');
+  if (!newsEvents || newsEvents.length === 0) {
+    list.innerHTML = '<div class="news-loading">✅ ' + t('no_upcoming_news') + '</div>';
+    label.textContent = '0';
+    return;
+  }
+  newsEvents.sort((a, b) => {
+    const da = a.dateTime || (a.date ? a.date + 'T' + (a.time || '00:00') : '');
+    const db = b.dateTime || (b.date ? b.date + 'T' + (b.time || '00:00') : '');
+    return da.localeCompare(db);
+  });
+  const displayed = newsEvents.slice(0, 10);
+  list.innerHTML = displayed.map(e => {
+    const impact = (e.impact || 'low').toLowerCase();
+    const impactClass = impact === 'high' ? 'high' : impact === 'medium' ? 'medium' : '';
+    const impactLabel = impact === 'high' ? '🔴' : impact === 'medium' ? '🟡' : '🟢';
+    let timeStr = '';
+    if (e.dateTime) {
+      timeStr = new Date(e.dateTime).toLocaleString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } else if (e.date && e.time) timeStr = `${e.date} ${e.time}`;
+    else if (e.date) timeStr = e.date;
+    const country = e.country || e.currency || 'US';
+    const title = e.title || e.event || e.name || 'Event';
+    return `
+      <div class="news-item ${impactClass}">
+        <div>
+          <div class="news-event">${title}</div>
+          <div style="font-size:10px; color:#8b949e;">${country}</div>
+        </div>
+        <div style="text-align:left;">
+          <div class="news-time">${timeStr}</div>
+          <span class="news-impact ${impactClass}">${impactLabel}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  label.textContent = `${newsEvents.length}`;
+  document.getElementById('newsCount').textContent = newsEvents.length;
+}
+
+function checkNewsProximity() {
+  if (!newsEvents || newsEvents.length === 0) return null;
+  const now = new Date();
+  const warnings = [];
+  for (const e of newsEvents) {
+    const impact = (e.impact || '').toLowerCase();
+    if (impact !== 'high' && impact !== 'medium') continue;
+    let eventTime = null;
+    if (e.dateTime) eventTime = new Date(e.dateTime);
+    else if (e.date && e.time) eventTime = new Date(`${e.date}T${e.time}:00Z`);
+    if (!eventTime) continue;
+    const diffMin = (eventTime - now) / 60000;
+    if (diffMin > 0 && diffMin <= 60) {
+      warnings.push({ title: e.title || e.event || 'Event', impact, minutesLeft: Math.round(diffMin) });
+    }
+  }
+  return warnings.length > 0 ? warnings : null;
+}
+
+/* ==========================================================
+   ⏰ العد التنازلي
+   ========================================================== */
+function updateCountdown() {
+  if (!newsEvents || newsEvents.length === 0) {
+    document.getElementById('countdownEvent').textContent = t('no_upcoming_news');
+    document.getElementById('countdownValue').textContent = '--:--:--';
+    document.getElementById('countdownLabel').textContent = t('no_news');
+    document.getElementById('countdownUpcoming').innerHTML = '';
+    return;
+  }
+  const now = new Date();
+  const upcoming = [];
+  for (const e of newsEvents) {
+    let eventTime = null;
+    if (e.dateTime) eventTime = new Date(e.dateTime);
+    else if (e.date && e.time) eventTime = new Date(`${e.date}T${e.time}:00Z`);
+    if (!eventTime) continue;
+    const diffMs = eventTime - now;
+    if (diffMs > 0) upcoming.push({ title: e.title || e.event || 'Event', impact: (e.impact || 'low').toLowerCase(), time: eventTime, diffMs });
+  }
+  if (upcoming.length === 0) {
+    document.getElementById('countdownEvent').textContent = t('no_upcoming_news');
+    document.getElementById('countdownValue').textContent = '--:--:--';
+    document.getElementById('countdownLabel').textContent = t('no_news');
+    document.getElementById('countdownUpcoming').innerHTML = '';
+    setCountdownColor('safe');
+    return;
+  }
+  upcoming.sort((a, b) => a.diffMs - b.diffMs);
+  const next = upcoming[0];
+  const totalSec = Math.floor(next.diffMs / 1000);
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+  let timeStr = days > 0
+    ? `${days}${t('days_short')} ${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`
+    : `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+  document.getElementById('countdownValue').textContent = timeStr;
+  document.getElementById('countdownEvent').textContent = `${next.impact === 'high' ? '🔴' : '🟡'} ${next.title}`;
+  const minLeft = next.diffMs / 60000;
+  let label = '';
+  let colorState = 'safe';
+  if (minLeft < 5) { colorState = 'danger'; label = `${t('news_very_soon')} (${Math.floor(minLeft)} ${t('minutes_short')})`; }
+  else if (minLeft < 15) { colorState = 'danger'; label = `🔴 ${Math.floor(minLeft)} ${t('minutes_short')} — ${t('news_prepare')}`; }
+  else if (minLeft < 60) { colorState = 'warning'; label = `🟡 ${Math.floor(minLeft)} ${t('minutes_short')} — ${t('news_watch')}`; }
+  else if (minLeft < 240) { colorState = 'safe'; label = `🟢 ${Math.floor(minLeft/60)} ${t('hours_short')} ${Math.floor(minLeft%60)} ${t('minutes_short')}`; }
+  else { colorState = 'safe'; label = `🟢 ${Math.floor(minLeft / 1440)} ${t('days_short')}`; }
+  document.getElementById('countdownLabel').textContent = label;
+  setCountdownColor(colorState);
+  document.getElementById('countdownUpcoming').innerHTML = upcoming.slice(0, 3).map(u => {
+    const m = Math.floor(u.diffMs / 60000);
+    const h = Math.floor(m / 60);
+    const d = Math.floor(h / 24);
+    let timeAgo = d > 0 ? `${d}${t('days_short')}` : h > 0 ? `${h}${t('hours_short')} ${m%60}${t('minutes_short')}` : `${m}${t('minutes_short')}`;
+    return `<div class="countdown-pill ${u.impact === 'high' ? 'high' : 'medium'}">${u.title.substring(0, 20)} — ${timeAgo}</div>`;
+  }).join('');
+  checkAndFireWarnings(upcoming);
+}
+
+function setCountdownColor(state) {
+  document.getElementById('countdownBar').className = 'countdown-bar ' + state;
+  document.getElementById('countdownTitle').className = 'countdown-title ' + state;
+  document.getElementById('countdownValue').className = 'countdown-value ' + state;
+}
+
+function checkAndFireWarnings(upcoming) {
+  const thresholds = [
+    { min: 30, flag: 'newsWarn30' },
+    { min: 15, flag: 'newsWarn15' },
+    { min: 5, flag: 'newsWarn5' }
+  ];
+  for (const u of upcoming) {
+    if (u.impact !== 'high') continue;
+    const minLeft = u.diffMs / 60000;
+    const eventKey = u.title + '_' + u.time.getTime();
+    for (const th of thresholds) {
+      if (!CONFIG[th.flag]) continue;
+      const warnKey = eventKey + '_' + th.min;
+      if (newsWarningsFired[warnKey]) continue;
+      if (minLeft <= th.min && minLeft > th.min - 1) {
+        newsWarningsFired[warnKey] = true;
+        fireNewsWarning(u, th);
+      }
+    }
+  }
+}
+
+function fireNewsWarning(event, threshold) {
+  playNewsWarningSound();
+  vibrate([500, 200, 500, 200, 500]);
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.style.background = 'linear-gradient(135deg, #f85149, #d29922)';
+  toast.style.color = 'white';
+  toast.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="font-size:15px;">${t('news_warning')}</div>
+      <div class="toast-close" onclick="this.parentElement.parentElement.remove()">×</div>
+    </div>
+    <div style="font-size:14px; text-align:center; margin-top:8px;"><b>${event.title}</b></div>
+    <div style="font-size:16px; text-align:center; font-weight:bold; margin-top:6px;">${t('after')} ${threshold.min} ${t('minutes')}</div>
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 20000);
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      new Notification(`${t('news_warning')} — ${threshold.min} ${t('minutes')}`, {
+        body: event.title,
+        tag: 'news_warn_' + event.title,
+        requireInteraction: true
+      });
+    } catch(e) {}
+  }
+}
+
+function playNewsWarningSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [800, 600, 800, 600].forEach((freq, i) => {
+      setTimeout(() => {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq; osc.type = 'square';
+        gain.gain.setValueAtTime(0.4, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.4);
+      }, i * 250);
+    });
+  } catch(e) {}
+}
+
+/* ==========================================================
+   🔀 تبديل السوق
+   ========================================================== */
+function setMarket(market) {
+  if (isRunning) {
+    if (!confirm(currentLang === 'ar' ? 'تبديل السوق سيعيد التشغيل. متابعة؟' : currentLang === 'en' ? 'Switching will restart. Continue?' : '切换市场将重新启动。继续？')) return;
+    stopSystem();
+    setTimeout(() => { currentMarket = market; updateMarketUI(); }, 300);
+  } else {
+    currentMarket = market;
+    updateMarketUI();
+  }
+}
+
+function updateMarketUI() {
+  document.getElementById('mktSpot').classList.toggle('active', currentMarket === 'spot');
+  document.getElementById('mktFutures').classList.toggle('active', currentMarket === 'futures');
+  document.getElementById('statusText').textContent = currentMarket === 'spot' ? t('spot') : t('futures');
+}
+
+function getAPIBase() {
+  return currentMarket === 'spot' ? 'https://api.binance.com/api/v3' : 'https://fapi.binance.com/fapi/v1';
+}
+
+function getWSBase() {
+  return currentMarket === 'spot' ? 'wss://stream.binance.com:9443' : 'wss://fstream.binance.com';
+}
+
+function getTradeURL(symbol) {
+  const base = symbol.replace('USDT', '');
+  return currentMarket === 'spot'
+    ? `https://www.binance.com/en/trade/${base}_USDT`
+    : `https://www.binance.com/en/futures/${symbol}`;
+}
+
+/* ==========================================================
+   🔧 متغيرات
+   ========================================================== */
+let isRunning = false;
+let currentMarket = 'spot';
+let wsSockets = [];
+let cooldownMap = {};
+let stats = { accum: 0, strong: 0, short: 0, warnings: 0, active: 0 };
+let symbolsCache = [];
+let liveData = {};
+let history = {};
+let currentSignal = null;
+let pulseCount = 0;
+let wsStatus = 'off';
+let analysisTimer = null;
+let newsTimer = null;
+let liveCountTimer = null;
+let countdownTimer = null;
+let macroTimer = null;
+let btcEthTimer = null;
+
+/* ==========================================================
+   📡 WebSocket
+   ========================================================== */
+function connectWebSocket(symbols) {
+  disconnectWebSocket();
+  if (symbols.length === 0) return;
+  const CHUNK = 100;
+  const chunks = [];
+  for (let i = 0; i < symbols.length; i += CHUNK) chunks.push(symbols.slice(i, i + CHUNK));
+  let connectedCount = 0;
+  wsSockets = [];
+  wsStatus = 'connecting';
+
+  chunks.forEach((chunk) => {
+    const streams = chunk.map(s => `${s.toLowerCase()}@ticker`).join('/');
+    const url = `${getWSBase()}/stream?streams=${streams}`;
+    try {
+      const socket = new WebSocket(url);
+      wsSockets.push(socket);
+      socket.onopen = () => {
+        connectedCount++;
+        if (connectedCount === chunks.length) {
+          wsStatus = 'connected';
+          updateWsIndicator();
+        }
+      };
+      socket.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          const tt = msg.data;
+          if (!tt || tt.e !== '24hrTicker') return;
+          const symbol = tt.s;
+          const price = parseFloat(tt.c);
+          const bid = parseFloat(tt.b);
+          const ask = parseFloat(tt.a);
+          const vol = parseFloat(tt.q);
+          const high = parseFloat(tt.h);
+          const low = parseFloat(tt.l);
+          liveData[symbol] = { price, bid, ask, vol, high, low, time: Date.now() };
+          if (!history[symbol]) history[symbol] = [];
+          history[symbol].push({ price, bid, ask, vol, high, low, time: Date.now() });
+          const cutoff = Date.now() - 900000;
+          history[symbol] = history[symbol].filter(p => p.time >= cutoff);
+          pulseCount++;
+          document.getElementById('scanCount').textContent = pulseCount + ' ' + t('pulses_short');
+        } catch(e) {}
+      };
+      socket.onerror = () => {};
+      socket.onclose = () => {
+        if (isRunning) {
+          setTimeout(() => {
+            if (isRunning && !wsSockets.some(s => s.readyState === 1)) {
+              connectWebSocket(symbolsCache);
+            }
+          }, 3000);
+        }
+      };
+    } catch(e) {}
+  });
+}
+
+function disconnectWebSocket() {
+  wsSockets.forEach(s => { try { s.onclose = null; s.close(); } catch(e) {} });
+  wsSockets = [];
+  wsStatus = 'off';
+  updateWsIndicator();
+}
+
+function updateWsIndicator() {
+  const el = document.getElementById('liveDot');
+  if (wsStatus === 'connected') el.classList.remove('off');
+  else el.classList.add('off');
+}
+
+/* ==========================================================
+   🔬 كشف امتصاص البيع
+   ========================================================== */
+function detectAbsorption(symbol) {
+  const hist = history[symbol];
+  const lp = liveData[symbol];
+  if (!hist || hist.length < 30 || !lp) return null;
+  const now = Date.now();
+  const recent = hist.filter(h => h.time >= now - 300000);
+  if (recent.length < 10) return null;
+  const prices = recent.map(h => h.price);
+  const high = Math.max(...prices);
+  const low = Math.min(...prices);
+  const range = (high - low) / low * 100;
+  const position = (lp.price - low) / (high - low || 1);
+  let lowerWick = 0, upperWick = 0;
+  for (let i = 1; i < recent.length; i++) {
+    const p = recent[i-1].price, c = recent[i].price;
+    const n = i < recent.length - 1 ? recent[i+1].price : c;
+    if (c < p && c < n) lowerWick++;
+    if (c > p && c > n) upperWick++;
+  }
+  const mid = (lp.bid + lp.ask) / 2;
+  const spreadPos = (lp.price - mid) / (lp.ask - lp.bid || 1);
+  let score = 0;
+  const signals = {};
+  if (range < 3) { score += 25; signals.rangeCompression = { active: true, value: range }; }
+  else if (range < 5) { score += 10; signals.rangeCompression = { active: true, value: range }; }
+  else signals.rangeCompression = { active: false, value: range };
+  if (position < 0.4) { score += 20; signals.lowPosition = { active: true, value: position }; }
+  else { signals.lowPosition = { active: false, value: position }; if (position > 0.7) signals.distribution = true; }
+  if (lowerWick > upperWick * 1.5 && lowerWick >= 3) { score += 25; signals.lowerWicks = { active: true, count: lowerWick }; }
+  else if (lowerWick > upperWick) { score += 10; signals.lowerWicks = { active: true, count: lowerWick }; }
+  else signals.lowerWicks = { active: false, count: lowerWick };
+  if (spreadPos > 0.15) { score += 15; signals.buyPressure = { active: true, value: spreadPos }; }
+  else signals.buyPressure = { active: false, value: spreadPos };
+  return { absorptionScore: score, signals, range, position, lowerWickCount: lowerWick, upperWickCount: upperWick };
+}
+
+/* ==========================================================
+   🔴 كشف ضغط البيع (Short)
+   ========================================================== */
+function detectDistribution(symbol) {
+  const hist = history[symbol];
+  const lp = liveData[symbol];
+  if (!hist || hist.length < 30 || !lp) return null;
+  const now = Date.now();
+  const recent = hist.filter(h => h.time >= now - 300000);
+  if (recent.length < 10) return null;
+  const prices = recent.map(h => h.price);
+  const high = Math.max(...prices);
+  const low = Math.min(...prices);
+  const range = (high - low) / low * 100;
+  const position = (lp.price - low) / (high - low || 1);
+  let upperWick = 0, lowerWick = 0;
+  for (let i = 1; i < recent.length; i++) {
+    const p = recent[i-1].price, c = recent[i].price;
+    const n = i < recent.length - 1 ? recent[i+1].price : c;
+    if (c > p && c > n) upperWick++;
+    if (c < p && c < n) lowerWick++;
+  }
+  const mid = (lp.bid + lp.ask) / 2;
+  const spreadPos = (lp.price - mid) / (lp.ask - lp.bid || 1);
+  let score = 0;
+  const signals = {};
+  if (range < 3) { score += 25; signals.rangeCompression = { active: true, value: range }; }
+  else if (range < 5) { score += 10; signals.rangeCompression = { active: true, value: range }; }
+  else signals.rangeCompression = { active: false, value: range };
+  if (position > 0.6) { score += 20; signals.highPosition = { active: true, value: position }; }
+  else signals.highPosition = { active: false, value: position };
+  if (upperWick > lowerWick * 1.5 && upperWick >= 3) { score += 25; signals.upperWicks = { active: true, count: upperWick }; }
+  else if (upperWick > lowerWick) { score += 10; signals.upperWicks = { active: true, count: upperWick }; }
+  else signals.upperWicks = { active: false, count: upperWick };
+  if (spreadPos < -0.15) { score += 15; signals.sellPressure = { active: true, value: spreadPos }; }
+  else signals.sellPressure = { active: false, value: spreadPos };
+  return { distributionScore: score, signals, range, position, upperWickCount: upperWick, lowerWickCount: lowerWick };
+}
+
+/* ==========================================================
+   📊 CVD الخفي
+   ========================================================== */
+function detectHiddenCVD(symbol) {
+  const hist = history[symbol];
+  if (!hist || hist.length < 30) return null;
+  const now = Date.now();
+  const recent = hist.filter(h => h.time >= now - 300000);
+  const older = hist.filter(h => h.time >= now - 600000 && h.time < now - 300000);
+  if (recent.length < 10) return null;
+  const olderVols = older.map(h => h.vol).filter(v => v > 0);
+  const recentVols = recent.map(h => h.vol).filter(v => v > 0);
+  if (olderVols.length < 5 || recentVols.length < 5) return null;
+  const prices = recent.map(h => h.price);
+  const range = (Math.max(...prices) - Math.min(...prices)) / Math.min(...prices) * 100;
+  const priceStable = range < 2;
+  const activity = recent.length / 300;
+  const recentAvg = recentVols.reduce((a,b) => a+b, 0) / recentVols.length;
+  const olderAvg = olderVols.reduce((a,b) => a+b, 0) / olderVols.length;
+  const volRatio = olderAvg > 0 ? recentAvg / olderAvg : 1;
+  const volGrowth = recentVols[recentVols.length-1] > recentVols[0]
+    ? (recentVols[recentVols.length-1] - recentVols[0]) / recentVols[0] * 100 : 0;
+  let score = 0;
+  const signals = {};
+  if (priceStable) { score += 30; signals.priceStable = { active: true, value: range }; }
+  else signals.priceStable = { active: false, value: range };
+  if (volRatio > 1.1 && priceStable) { score += 30; signals.volumeSurge = { active: true, value: volRatio }; }
+  else if (volRatio > 1.05) { score += 15; signals.volumeSurge = { active: true, value: volRatio }; }
+  else signals.volumeSurge = { active: false, value: volRatio };
+  if (volGrowth > 20) { score += 20; signals.volGrowth = { active: true, value: volGrowth }; }
+  else signals.volGrowth = { active: false, value: volGrowth };
+  if (activity > 0.5) { score += 20; signals.highActivity = { active: true, value: activity }; }
+  else signals.highActivity = { active: false, value: activity };
+  return { cvdScore: score, signals, volRatio, volGrowth, range, priceStable };
+}
+
+/* ==========================================================
+   📉 جفاف الفوليوم
+   ========================================================== */
+function detectVolumeDry(symbol) {
+  const hist = history[symbol];
+  if (!hist || hist.length < 40) return null;
+  const now = Date.now();
+  const recent = hist.filter(h => h.time >= now - 180000);
+  const prev = hist.filter(h => h.time >= now - 600000 && h.time < now - 180000);
+  if (recent.length < 5 || prev.length < 10) return null;
+  const recentChanges = [];
+  for (let i = 1; i < recent.length; i++) recentChanges.push(Math.abs(recent[i].price - recent[i-1].price));
+  const prevChanges = [];
+  for (let i = 1; i < prev.length; i++) prevChanges.push(Math.abs(prev[i].price - prev[i-1].price));
+  const recentAvg = recentChanges.reduce((a,b) => a+b, 0) / (recentChanges.length || 1);
+  const prevAvg = prevChanges.reduce((a,b) => a+b, 0) / (prevChanges.length || 1);
+  const dryRatio = prevAvg > 0 ? recentAvg / prevAvg : 1;
+  const isDry = dryRatio < 0.6;
+  return { isDry, dryRatio, score: isDry ? Math.min(100, (1 - dryRatio) * 150) : 0 };
+}
+
+/* ==========================================================
+   🎯 التحليل الشامل
+   ========================================================== */
+function analyzeSymbol(symbol) {
+  const lp = liveData[symbol];
+  const hist = history[symbol];
+  if (!lp || !hist || hist.length < 40) return null;
+  const dry = detectVolumeDry(symbol);
+  const hiddenCVD = detectHiddenCVD(symbol);
+  if (!hiddenCVD) return null;
+
+  const absorption = detectAbsorption(symbol);
+  let longScore = 0;
+  if (absorption) {
+    longScore += absorption.absorptionScore * 0.4;
+    longScore += hiddenCVD.cvdScore * 0.4;
+    if (dry) longScore += dry.score * 0.2;
+    longScore = Math.round(Math.min(100, longScore));
+    if (absorption.signals.distribution) longScore = 0;
+  }
+
+  const distribution = detectDistribution(symbol);
+  let shortScore = 0;
+  if (distribution) {
+    shortScore += distribution.distributionScore * 0.6;
+    shortScore += hiddenCVD.cvdScore * 0.3;
+    if (dry) shortScore += dry.score * 0.1;
+    shortScore = Math.round(Math.min(100, shortScore));
+    if (distribution.position < 0.3) shortScore = 0;
+  }
+
+  let direction = null, score = 0, detail = null;
+  if (longScore >= CONFIG.minAbsorp && longScore >= shortScore) {
+    direction = 'long'; score = longScore; detail = absorption;
+  } else if (shortScore >= CONFIG.shortScore && shortScore > longScore) {
+    direction = 'short'; score = shortScore; detail = distribution;
+  }
+  if (!direction) return null;
+
+  const entryPrice = direction === 'long' ? lp.ask : lp.bid;
+  const slPct = Math.max(2, detail.range * 0.8);
+  const tp1Pct = slPct * 1.5;
+  const tp2Pct = slPct * 2.5;
+  const stopLoss = direction === 'long' ? entryPrice * (1 - slPct / 100) : entryPrice * (1 + slPct / 100);
+  const tp1 = direction === 'long' ? entryPrice * (1 + tp1Pct / 100) : entryPrice * (1 - tp1Pct / 100);
+  const tp2 = direction === 'long' ? entryPrice * (1 + tp2Pct / 100) : entryPrice * (1 - tp2Pct / 100);
+
+  return {
+    symbol, score, direction, detail,
+    price: lp.price, bid: lp.bid, ask: lp.ask,
+    volume24h: lp.vol, high24h: lp.high, low24h: lp.low,
+    entryPrice, stopLoss, takeProfit1: tp1, takeProfit2: tp2,
+    slPct, tp1Pct, tp2Pct, riskReward: tp1Pct / slPct,
+    hiddenCVD, dry, range: detail.range, position: detail.position, time: Date.now()
+  };
+}
+
+function runAnalysis() {
+  if (!isRunning) return;
+  document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+  const macro = analyzeMacro();
+  const results = [];
+  for (const symbol of symbolsCache) {
+    try {
+      const r = analyzeSymbol(symbol);
+      if (r) results.push(r);
+    } catch(e) {}
+  }
+  results.sort((a, b) => b.score - a.score);
+  if (results.length > 0) {
+    const best = results[0];
+    const last = cooldownMap[best.symbol + '_' + best.direction] || 0;
+    const now = Date.now();
+    if ((now - last) >= (CONFIG.cooldownSec * 1000)) {
+      cooldownMap[best.symbol + '_' + best.direction] = now;
+      showSignal(best, macro);
+    }
+  }
+  stats.active = Object.keys(liveData).length;
+  updateStats();
+}
+
+/* ==========================================================
+   💎 عرض التنبيه
+   ========================================================== */
+function showSignal(signal, macro) {
+  currentSignal = signal;
+  currentSignal.macro = macro;
+  const isShort = signal.direction === 'short';
+  playSound(isShort);
+  vibrate(isShort ? [500, 200, 500, 200, 500] : [300, 100, 300, 100, 300]);
+  sendNotification(signal);
+  showToast(signal);
+  if (signal.score >= 80) showFlash(signal.direction);
+  stats.accum++;
+  if (signal.score >= 80) stats.strong++;
+  if (isShort) stats.short++;
+  if (CONFIG.paperMode) {
+    addTradeToHistory(signal);
+    renderHistory();
+    updatePerfStats();
+  }
+  updateStats();
+  renderSignal();
+}
+
+function renderSignal() {
+  const container = document.getElementById('alertsContainer');
+  if (!currentSignal) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <span class="emoji">💎</span>
+        <div>${t('empty_title')}</div>
+        <div style="margin-top: 10px; font-size: 11px; color: #6e7681;">
+          <div>${t('empty_line1')}</div>
+          <div>${t('empty_line2')}</div>
+          <div>${t('empty_line3')}</div>
+        </div>
+        <div class="empty-stats">
+          <div><div class="empty-stat-value">${Object.keys(liveData).length}</div><div style="font-size:9px; color:#6e7681;">${t('live_prices')}</div></div>
+          <div><div class="empty-stat-value">${pulseCount}</div><div style="font-size:9px; color:#6e7681;">${t('pulses_short')}</div></div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const s = currentSignal;
+  const isShort = s.direction === 'short';
+  const macro = s.macro || { state: 'safe', reasons: [] };
+  const scoreClass = s.score >= 80 ? (isShort ? 'short' : 'high') : s.score >= 60 ? 'medium' : 'low';
+  const detailScore = s.detail?.absorptionScore || s.detail?.distributionScore || 0;
+  const absTotal = detailScore + (s.hiddenCVD?.cvdScore || 0);
+  const buyPct = absTotal > 0 ? (detailScore / absTotal * 100) : 50;
+  const sellPct = 100 - buyPct;
+
+  const warnings = checkNewsProximity();
+  let newsHTML = '';
+  if (warnings) {
+    newsHTML = warnings.map(w => `
+      <div class="news-warning">
+        <span>⚠️</span>
+        <span><b>${w.title}</b> ${t('after')} ${w.minutesLeft} ${t('minutes_short')}</span>
+      </div>
+    `).join('');
+  }
+
+  let macroHTML = '';
+  if (macro.state === 'danger') {
+    macroHTML = `<div class="news-warning" style="border-color:#f85149"><span>🚫</span><span><b>${t('danger')}:</b> ${macro.reasons.slice(0,2).join(' • ')}</span></div>`;
+  } else if (macro.state === 'warning') {
+    macroHTML = `<div class="news-warning" style="border-color:#f0b90b"><span>⚠️</span><span><b>${t('warning')}:</b> ${macro.reasons.slice(0,2).join(' • ')}</span></div>`;
+  }
+
+  const statusText = isShort
+    ? (s.score >= 80 ? t('strong_dist') : s.score >= 60 ? t('medium_dist') : t('weak'))
+    : (s.score >= 80 ? t('strong_accum') : s.score >= 60 ? t('medium_accum') : t('weak'));
+
+  const wickValue = isShort ? s.detail.upperWickCount : s.detail.lowerWickCount;
+
+  container.innerHTML = `
+    <div class="signal-card ${isShort ? 'short' : ''} ${s.score >= 80 ? 'hot' : ''}">
+      <div class="signal-header">
+        <div class="signal-symbol">${isShort ? '🔴' : '🟢'} ${s.symbol.replace('USDT','')}</div>
+        <div class="signal-badge ${isShort ? 'short' : ''}">${isShort ? t('short_badge') : t('long')}</div>
+      </div>
+      ${macroHTML}
+      ${newsHTML}
+      <div class="absorp-score">
+        <div style="font-size:10px; color:#8b949e;">🎯 ${isShort ? 'Distribution' : 'Accumulation'}</div>
+        <div class="absorp-value ${scoreClass}">${s.score}</div>
+        <div class="absorp-label">${currentLang === 'ar' ? 'من 100' : currentLang === 'en' ? 'of 100' : '满分 100'}</div>
+        <div class="absorp-status ${isShort ? 'short' : ''}">${statusText}</div>
+      </div>
+      <div class="absorption-bar">
+        <div class="abs-buy" style="width:${buyPct}%">${buyPct.toFixed(0)}%</div>
+        <div class="abs-sell" style="width:${sellPct}%">${sellPct.toFixed(0)}%</div>
+      </div>
+      <div class="alert-metrics">
+        <div class="metric"><span class="metric-label">${t('price')}</span><span class="metric-value">$${formatPrice(s.price)}</span></div>
+        <div class="metric"><span class="metric-label">${t('range')}</span><span class="metric-value gold">${s.range.toFixed(2)}%</span></div>
+        <div class="metric"><span class="metric-label">${t('position')}</span><span class="metric-value">${(s.position*100).toFixed(0)}%</span></div>
+        <div class="metric"><span class="metric-label">${t('wicks')}</span><span class="metric-value">${wickValue}</span></div>
+        <div class="metric"><span class="metric-label">${t('cvd')}</span><span class="metric-value gold">${s.hiddenCVD.cvdScore}</span></div>
+        <div class="metric"><span class="metric-label">${t('volume')}</span><span class="metric-value">${s.dry && s.dry.isDry ? t('dry') : t('normal')}</span></div>
+      </div>
+      <div style="background:#0a0e14; border-radius:8px; padding:10px; margin-bottom:10px;">
+        <div style="font-size:10px; color:#8b949e; text-align:center; margin-bottom:6px;">🎯 ${isShort ? 'Short' : 'Long'}</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; text-align:center;">
+          <div><div style="font-size:9px; color:#58a6ff;">${t('entry')}</div><div style="font-size:13px; font-weight:bold; color:#58a6ff; font-family:'Courier New'">$${formatPrice(s.entryPrice)}</div></div>
+          <div><div style="font-size:9px; color:#f85149;">${t('stop_loss')}</div><div style="font-size:13px; font-weight:bold; color:#f85149; font-family:'Courier New'">$${formatPrice(s.stopLoss)}</div></div>
+          <div><div style="font-size:9px; color:#3fb950;">${t('target')}</div><div style="font-size:13px; font-weight:bold; color:#3fb950; font-family:'Courier New'">$${formatPrice(s.takeProfit1)}</div></div>
+        </div>
+      </div>
+      <div style="text-align:center; font-size:10px; color:#f0b90b; padding:6px; background:#f0b90b11; border-radius:6px; margin-bottom:10px;">
+        ⚖️ R/R: <b>1:${s.riskReward.toFixed(1)}</b>
+      </div>
+      <div class="big-actions">
+        <button class="big-btn ${isShort ? 'go-short' : 'go'}" onclick="openTrade('${s.symbol}')">${isShort ? t('short_action') : t('buy')}</button>
+        <button class="big-btn chart" onclick="openChart('${s.symbol}')">${t('chart')}</button>
+        <button class="big-btn copy" onclick="copySignal('${s.symbol}', ${s.entryPrice}, ${s.stopLoss}, ${s.takeProfit1}, '${s.direction}')">${t('copy')}</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ==========================================================
+   🔧 Helpers
+   ========================================================== */
+function formatPrice(n) {
+  if (!n || isNaN(n)) return '0';
+  if (n >= 1000) return n.toFixed(2);
+  if (n >= 1) return n.toFixed(4);
+  if (n >= 0.01) return n.toFixed(5);
+  return n.toFixed(8);
+}
+
+function getTimeAgo(tm) {
+  const diff = Math.floor((Date.now() - tm) / 1000);
+  if (diff < 60) return t('time_ago_sec').replace('{n}', diff);
+  if (diff < 3600) return t('time_ago_min').replace('{n}', Math.floor(diff/60));
+  return t('time_ago_hour').replace('{n}', Math.floor(diff/3600));
+}
+
+function updateStats() {
+  document.getElementById('accumCount').textContent = stats.accum;
+  document.getElementById('strongCount').textContent = stats.strong;
+  document.getElementById('shortCount').textContent = stats.short;
+}
+
+function openChart(symbol) { window.open(getTradeURL(symbol), '_blank'); }
+function openTrade(symbol) { window.open(getTradeURL(symbol), '_blank'); }
+
+function copySignal(symbol, entry, sl, tp, direction) {
+  const text = `💎 ${direction === 'short' ? 'SHORT 🔴' : 'LONG 🟢'}\n📊 ${symbol}\n🎯 Entry: $${entry.toFixed(6)}\n🛑 SL: $${sl.toFixed(6)}\n🎯 TP: $${tp.toFixed(6)}`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.style.background = 'linear-gradient(135deg, #6e40c9, #a371f7)';
+      toast.innerHTML = `<div style="text-align:center;"><div style="font-size:15px;">${t('copied')}</div><div style="font-size:11px; opacity:0.9; margin-top:4px;">${t('copied_desc')}</div></div>`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    }).catch(() => alert(text));
+  } else alert(text);
+}
+
+function playSound(isShort) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const freqs = isShort ? [880, 660, 550, 440] : [440, 554, 659, 880];
+    freqs.forEach((freq, i) => {
+      setTimeout(() => {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = isShort ? 'sawtooth' : 'sine';
+        gain.gain.setValueAtTime(0.35, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
+      }, i * 150);
+    });
+  } catch(e) {}
+}
+
+function vibrate(p) { if (navigator.vibrate) navigator.vibrate(p); }
+
+function sendNotification(signal) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const isShort = signal.direction === 'short';
+    new Notification(`${isShort ? '🔴 SHORT' : '🟢 LONG'} — ${signal.symbol}`, {
+      body: `${signal.score}/100\n$${formatPrice(signal.price)}`,
+      tag: signal.symbol + '_' + signal.direction
+    });
+  } catch(e) {}
+}
+
+function showToast(signal) {
+  const isShort = signal.direction === 'short';
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (isShort ? ' short' : '');
+  toast.innerHTML = `
+    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+      <div style="font-size:15px;">${isShort ? '🔴 SHORT' : '🟢 LONG'} — ${signal.symbol}</div>
+      <div class="toast-close" onclick="this.parentElement.parentElement.remove()">×</div>
+    </div>
+    <div style="font-size:24px; text-align:center; margin:6px 0;">${signal.score}/100</div>
+    <div style="font-size:12px; text-align:center;">$${formatPrice(signal.price)}</div>
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }
+  }, 15000);
+}
+
+function showFlash(direction) {
+  const flash = document.createElement('div');
+  flash.className = 'flash' + (direction === 'short' ? ' short' : '');
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 700);
+}
+
+/* ==========================================================
+   📊 جلب العملات
+   ========================================================== */
+async function fetchTopSymbols() {
+  try {
+    const res = await fetch(`${getAPIBase()}/ticker/24hr`);
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+    const minVol = CONFIG.minVolumeM * 1000000;
+    return data
+      .filter(x => x.symbol.endsWith('USDT'))
+      .filter(x => !x.symbol.includes('UP') && !x.symbol.includes('DOWN'))
+      .filter(x => !x.symbol.includes('BULL') && !x.symbol.includes('BEAR'))
+      .filter(x => !x.symbol.includes('USDC'))
+      .filter(x => parseFloat(x.quoteVolume) > minVol)
+      .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
+      .slice(0, CONFIG.topCount)
+      .map(x => x.symbol);
+  } catch (e) { return []; }
+}
+
+/* ==========================================================
+   ⚙️ الفلتر
+   ========================================================== */
+function toggleFilter() { document.getElementById('filterPanel').classList.toggle('open'); }
+
+function updateFilter(key, value) {
+  const v = parseFloat(value);
+  if (key === 'minAbsorp') { CONFIG.minAbsorp = v; document.getElementById('minAbsorpVal').textContent = value; }
+  else if (key === 'topCount') { CONFIG.topCount = parseInt(value); document.getElementById('topCountVal').textContent = value; }
+  else if (key === 'minVolumeM') { CONFIG.minVolumeM = v; document.getElementById('minVolumeVal').textContent = value + 'M'; }
+  else if (key === 'cooldownSec') { CONFIG.cooldownSec = v; document.getElementById('cooldownVal').textContent = value; }
+  else if (key === 'trackDurationMin') { CONFIG.trackDurationMin = v; document.getElementById('trackDurVal').textContent = value; }
+  else if (key === 'shortScore') { CONFIG.shortScore = v; document.getElementById('shortScoreVal').textContent = value; }
+  saveConfig();
+}
+
+function applyConfigToUI() {
+  document.getElementById('minAbsorpSlider').value = CONFIG.minAbsorp;
+  document.getElementById('minAbsorpVal').textContent = CONFIG.minAbsorp;
+  document.getElementById('topCountSlider').value = CONFIG.topCount;
+  document.getElementById('topCountVal').textContent = CONFIG.topCount;
+  document.getElementById('minVolumeSlider').value = CONFIG.minVolumeM;
+  document.getElementById('minVolumeVal').textContent = CONFIG.minVolumeM + 'M';
+  document.getElementById('cooldownSlider').value = CONFIG.cooldownSec;
+  document.getElementById('cooldownVal').textContent = CONFIG.cooldownSec;
+  document.getElementById('trackDurSlider').value = CONFIG.trackDurationMin;
+  document.getElementById('trackDurVal').textContent = CONFIG.trackDurationMin;
+  document.getElementById('shortScoreSlider').value = CONFIG.shortScore;
+  document.getElementById('shortScoreVal').textContent = CONFIG.shortScore;
+  document.getElementById('paperMode').checked = CONFIG.paperMode;
+  document.getElementById('paperStatus').textContent = CONFIG.paperMode ? t('paper_desc') : (currentLang === 'ar' ? 'يتداول بفلوس حقيقية' : currentLang === 'en' ? 'Real money' : '真实资金');
+}
+
+/* ==========================================================
+   ▶️ بدء / إيقاف
+   ========================================================== */
+async function startSystem() {
+  if (isRunning) return;
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('stopBtn').disabled = false;
+  document.getElementById('liveDot').classList.remove('off');
+  document.getElementById('statusText').textContent = '🟢 ' + (currentMarket === 'spot' ? t('spot') : t('futures'));
+  document.getElementById('statusText').style.color = '#f0b90b';
+  currentSignal = null;
+  history = {};
+  liveData = {};
+  cooldownMap = {};
+  stats = { accum: 0, strong: 0, short: 0, warnings: 0, active: 0 };
+  pulseCount = 0;
+  updateStats();
+  renderSignal();
+  isRunning = true;
+  await fetchNews();
+  await fetchMacroData();
+  await fetchBtcEthData();
+  symbolsCache = await fetchTopSymbols();
+  document.getElementById('symbolsCount').textContent = symbolsCache.length;
+  if (symbolsCache.length === 0) {
+    alert('⚠️ Failed');
+    stopSystem();
+    return;
+  }
+  connectWebSocket(symbolsCache);
+  setTimeout(() => { if (isRunning) runAnalysis(); }, 60000);
+  analysisTimer = setInterval(() => { if (isRunning) runAnalysis(); }, 60000);
+  newsTimer = setInterval(() => { if (isRunning) fetchNews(); }, 900000);
+  macroTimer = setInterval(() => { if (isRunning) fetchMacroData(); }, 300000);
+  btcEthTimer = setInterval(() => { if (isRunning) fetchBtcEthData(); }, 5000);
+  liveCountTimer = setInterval(() => { if (currentSignal) renderSignal(); }, 30000);
+  updateCountdown();
+  countdownTimer = setInterval(updateCountdown, 1000);
+}
+
+function stopSystem() {
+  if (!isRunning) return;
+  isRunning = false;
+  disconnectWebSocket();
+  if (analysisTimer) clearInterval(analysisTimer);
+  if (newsTimer) clearInterval(newsTimer);
+  if (liveCountTimer) clearInterval(liveCountTimer);
+  if (countdownTimer) clearInterval(countdownTimer);
+  if (macroTimer) clearInterval(macroTimer);
+  if (btcEthTimer) clearInterval(btcEthTimer);
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = true;
+  document.getElementById('liveDot').classList.add('off');
+  document.getElementById('statusText').textContent = '⏸️ ' + t('stopped');
+  document.getElementById('statusText').style.color = '#8b949e';
+}
+
+/* ==========================================================
+   🔄 التهيئة
+   ========================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+  loadConfig();
+  loadHistory();
+  currentLang = CONFIG.language || 'ar';
+  applyLanguage();
+  applyConfigToUI();
+  updateMarketUI();
+  updateStats();
+  renderSignal();
+  renderHistory();
+  updatePerfStats();
+
+  tradeHistory.filter(tr => tr.status === 'pending').forEach(tr => {
+    if (tr.time + tr.durationMin * 60 * 1000 < Date.now()) {
+      setTimeout(() => checkTradeResult(tr.id), 1000);
+    } else {
+      scheduleTradeCheck(tr);
+    }
+  });
+
+  fetchNews();
+  fetchMacroData();
+  fetchBtcEthData();
+  updateCountdown();
+  countdownTimer = setInterval(updateCountdown, 1000);
+  macroTimer = setInterval(fetchMacroData, 300000);
+  btcEthTimer = setInterval(fetchBtcEthData, 5000);
+  setInterval(() => {
+    if (document.getElementById('dailyPanel').classList.contains('open')) {
+      renderDailyReport();
+    }
+  }, 300000);
+
+  window.addEventListener('beforeunload', (e) => {
+    if (isRunning) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  if ('Notification' in window && Notification.permission === 'default') {
+    setTimeout(() => {
+      if (confirm(currentLang === 'ar' ? '🔔 تفعيل الإشعارات؟' : currentLang === 'en' ? '🔔 Enable notifications?' : '🔔 开启通知？')) Notification.requestPermission();
+    }, 2000);
+  }
+});
+</script>
+</body>
+</html>
